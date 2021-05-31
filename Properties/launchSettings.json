@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "auditor": {
+      "commandName": "Project",
+      "commandLineArgs": "-c out6.csv -A -N 172.27.192.0/20"
+    }
+  }
+}
