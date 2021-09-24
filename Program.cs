@@ -23,7 +23,7 @@ namespace SMBeagle
         static void Run(Options opts)
         {
             if (opts.ElasticsearchHost == null && opts.CsvFile == null)
-                OutputHelp(new Exception("Please provide either an aleasticsearch host or a csv output filename"));
+                OutputHelp(new Exception("Please provide either an elasticsearch host or a csv output filename"));
 
             if (!opts.Quiet)
                 OutputHelper.ConsoleWriteLogo();
