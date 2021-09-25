@@ -15,16 +15,15 @@ namespace SMBeagle
     {
         static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<Options>(args)
+            var parser = new Parser(with => with.HelpWriter = null);
+            var parserResult = parser.ParseArguments<Options>(args);
+            parserResult
                 .WithParsed(Run)
-                .WithNotParsed(OutputHelp);
+                .WithNotParsed(errs => OutputHelp(parserResult, errs));
         }
 
         static void Run(Options opts)
         {
-            if (opts.ElasticsearchHost == null && opts.CsvFile == null)
-                OutputHelp(new Exception("Please provide either an elasticsearch host or a csv output filename"));
-
             if (!opts.Quiet)
                 OutputHelper.ConsoleWriteLogo();
 
@@ -129,27 +128,44 @@ namespace SMBeagle
             // TODO: know when elasticsearch sink has finished outputting
         }
 
-        static void OutputHelp(IEnumerable<Error> errs)
+        static void OutputHelp<T>(ParserResult<T> result, IEnumerable<Error> errs)
         {
             OutputHelper.ConsoleWriteLogo();
+            HelpText helpText = HelpText.AutoBuild(result, h =>
+            {
+                //configure help
+                h.AdditionalNewLineAfterOption = false;
+                h.Heading = "";
+                h.Copyright = "Apache License 2.0";
+                return HelpText.DefaultParsingErrorsHandler(result, h);
+            }, e => e);
+        Console.WriteLine(helpText);
         }
 
         static void OutputHelp(Exception err)
         {
+            string pad = new('-', err.Message.Length / 2);
             OutputHelper.ConsoleWriteLogo();
-            Console.WriteLine("!!!!------ ERROR ------!!!!");
-            Console.WriteLine(err.Message);
+            Console.WriteLine($"!{pad} ERROR {pad}!");
+            Console.WriteLine("");
+            Console.WriteLine("    " + err.Message);
+            Console.WriteLine("");
+            Console.WriteLine("    For help use --help");
+            Console.WriteLine("");
+            Console.WriteLine($"!{pad} ERROR {pad}!");
             System.Environment.Exit(1);
         }
+
 
         #region Classes
 
         public class Options
         {
-            [Option('c', "csv-file", Required = false, HelpText = "Output results to a CSV file by providing filepath")]
+
+            [Option('c', "csv-file", Group = "output", Required = false, HelpText = "Output results to a CSV file by providing filepath")]
             public string CsvFile { get; set; }
 
-            [Option('e', "elasticsearch-host", Required = false, HelpText = "Output results to elasticsearch by providing elasticsearch hostname (port is set to 9200 automatically)")]
+            [Option('e', "elasticsearch-host", Group = "output", Required = false, HelpText = "Output results to elasticsearch by providing elasticsearch hostname (port is set to 9200 automatically)")]
             public string ElasticsearchHost { get; set; }
 
             [Option('l', "scan-local-drives", Required = false, HelpText = "Scan local drives on this machine")]
@@ -188,9 +204,13 @@ namespace SMBeagle
             {
                 get
                 {
-                    return new List<Example>() {
-                        new Example("Output to a CSV file", new Options { CsvFile = "out.csv" })
-                    };
+                    UnParserSettings unParserSettings = new();
+                    unParserSettings.PreferShortName = true;
+                    yield return new Example("Output to a CSV file", unParserSettings,new Options { CsvFile = "out.csv" });
+                    yield return new Example("Output to elasticsearch (Preffered)", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1" });
+                    yield return new Example("Disable network discovery and provide manual networks", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1", DisableNetworkDiscovery = true,  Networks = new List<String>() { "192.168.12.0./23", "192.168.15.0/24" } });
+                    yield return new Example("Scan local filesystem too (SLOW)", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1", EnumerateLocalDrives = true });
+                    yield return new Example("Do not enumerate ACLs (FASTER)", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1", DontEnumerateAcls = true });
                 }
             }
         }

@@ -10,15 +10,15 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Security.Principal;
 
 namespace SMBeagle.Output
 {
     public static class OutputHelper
     {
-        #region Constants
-
-        const string LOGO = @"
+        #region Private properties
+        static string LOGO = @$"
         ____              __   _____                      _ __       
        / __ \__  ______  / /__/ ___/___  _______  _______(_) /___  __
       / /_/ / / / / __ \/ //_/\__ \/ _ \/ ___/ / / / ___/ / __/ / / /
@@ -26,12 +26,10 @@ namespace SMBeagle.Output
     /_/    \__,_/_/ /_/_/|_|/____/\___/\___/\__,_/_/  /_/\__/\__, /  
                                            PRESENTS         /____/  
 
-                         -- SMBeagle v1.0.0 --
+                         -- SMBeagle v{Assembly.GetEntryAssembly().GetName().Version.Major}.{Assembly.GetEntryAssembly().GetName().Version.Minor}.{Assembly.GetEntryAssembly().GetName().Version.Build} --
+
+
 ";
-
-        #endregion
-
-        #region Private properties
 
         static ILogger ElasticsearchLogger { get; set; } = null;
 

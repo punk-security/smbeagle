@@ -1,8 +1,7 @@
 {
   "profiles": {
     "auditor": {
-      "commandName": "Project",
-      "commandLineArgs": "-X"
+      "commandName": "Project"
     }
   }
 }
