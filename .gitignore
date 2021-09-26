@@ -338,3 +338,7 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+
+Properties
+Properties/launchSettings.json
+BuildConfig.json
