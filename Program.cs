@@ -121,7 +121,7 @@ namespace SMBeagle
 
             // Find files on all the shares
             FileFinder 
-                ff = new(paths: uncPaths, getPermissionsForSingleFileInDir: false, enumerateLocalDrives: opts.EnumerateLocalDrives, username: "", enumerateAcls: !opts.DontEnumerateAcls);
+                ff = new(paths: uncPaths, getPermissionsForSingleFileInDir: opts.EnumerateOnlyASingleFilesAcl, enumerateLocalDrives: opts.EnumerateLocalDrives, username: "", enumerateAcls: !opts.DontEnumerateAcls);
 
             OutputHelper.CloseAndFlush();
 
@@ -167,6 +167,9 @@ namespace SMBeagle
 
             [Option('e', "elasticsearch-host", Group = "output", Required = false, HelpText = "Output results to elasticsearch by providing elasticsearch hostname (port is set to 9200 automatically)")]
             public string ElasticsearchHost { get; set; }
+
+            [Option('f', "fast", Required = false, HelpText = "Enumerate only one files permissions per directory")]
+            public bool EnumerateOnlyASingleFilesAcl { get; set; }
 
             [Option('l', "scan-local-drives", Required = false, HelpText = "Scan local drives on this machine")]
             public bool EnumerateLocalDrives { get; set; }
