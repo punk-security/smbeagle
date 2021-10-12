@@ -208,71 +208,7 @@ namespace SMBeagle.FileDiscovery
             return UserSid;
         }
 
-        public static ACL ResolvePermissions(string path, IntPtr userSid)
-        {
-
-            ACL acl = new ACL() { Readable = false, Writeable = false, Deletable = false };
-            //return acl;
-            IntPtr pSidOwner, pSidGroup, pDacl, pSacl, pSecurityDescriptor;
-            
-            uint ret = GetNamedSecurityInfo(path,
-                SE_OBJECT_TYPE.SE_FILE_OBJECT,
-                SECURITY_INFORMATION.DACL_SECURITY_INFORMATION | SECURITY_INFORMATION.OWNER_SECURITY_INFORMATION | SECURITY_INFORMATION.GROUP_SECURITY_INFORMATION,
-                out pSidOwner, out pSidGroup, out pDacl, out pSacl, out pSecurityDescriptor);
-            IntPtr hManager = IntPtr.Zero;
-            bool f = AuthzInitializeResourceManager(1, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, null, out hManager);
-            if (f)
-            {
-                IntPtr pClientContext = IntPtr.Zero;
-                LUID unusedSid = new LUID();
-                f = AuthzInitializeContextFromSid(0, userSid, hManager, IntPtr.Zero, unusedSid, IntPtr.Zero, out pClientContext);
-
-
-                AUTHZ_ACCESS_REQUEST request = new AUTHZ_ACCESS_REQUEST();
-                request.DesiredAccess = 0x02000000;
-                request.PrincipalSelfSid = null;
-                request.ObjectTypeList = null;
-                request.ObjectTypeListLength = 0;
-                request.OptionalArguments = IntPtr.Zero;
-
-                AUTHZ_ACCESS_REPLY reply = new AUTHZ_ACCESS_REPLY();
-                reply.GrantedAccessMask = IntPtr.Zero;
-                reply.ResultListLength = 0;
-                reply.SaclEvaluationResults = IntPtr.Zero;
-                IntPtr AccessReply = IntPtr.Zero;
-                reply.Error = Marshal.AllocHGlobal(1020);
-                reply.GrantedAccessMask = Marshal.AllocHGlobal(sizeof(uint));
-                reply.ResultListLength = 1;
-                if (AuthzAccessCheck(0, pClientContext, ref request, IntPtr.Zero, pSecurityDescriptor, null, 0, ref reply, out AccessReply))
-                {
-                    int granted_access = Marshal.ReadInt32(reply.GrantedAccessMask);
-                    ACCESS_MASK mask = (ACCESS_MASK)granted_access;
-                    if ((mask & ACCESS_MASK.DELETE) > 0)
-                        acl.Deletable = true;
-                    if ((mask & ACCESS_MASK.FILE_READ_DATA) > 0)
-                        acl.Readable = true;
-                    if ((mask & ACCESS_MASK.FILE_WRITE_DATA) > 0)
-                        acl.Writeable = true;
-                }
-                FreePointerC(pClientContext);
-                FreePointerH(AccessReply);
-                FreePointerH(reply.GrantedAccessMask);
-                FreePointerH(reply.SaclEvaluationResults);
-                FreePointerH(reply.Error);
-            }
-            ////FreePointerC(pSidOwner);
-            ////FreePointerC(pSidGroup);
-            ////FreePointerC(pDacl);
-            FreePointerC(pSacl);
-
-            FreePointerC(pSecurityDescriptor);
-
-            //FreePointerH(hManager);
-            AuthzFreeResourceManager(hManager);
-            return acl;
-        }
-
-        public static ACL ResolvePermissionsng(string path)
+        public static ACL ResolvePermissionsViaFileStream (string path)
         {
             ACL acl = new();
             try
@@ -291,7 +227,7 @@ namespace SMBeagle.FileDiscovery
         }
 
 
-        public static IntPtr GetUserSidng(string username)
+        public static IntPtr GetpClientContext(string username)
         {
             IntPtr sid = PermissionHelper.GetUserSid(username);
             IntPtr hManager = IntPtr.Zero;
@@ -302,7 +238,7 @@ namespace SMBeagle.FileDiscovery
             return pClientContext;
         }
 
-    public static ACL ResolvePermissionsng(string path, IntPtr pClientContext)
+    public static ACL ResolvePermissionsViaWinApi(string path, IntPtr pClientContext)
     {
 
         ACL acl = new ACL() { Readable = false, Writeable = false, Deletable = false };
@@ -364,16 +300,11 @@ namespace SMBeagle.FileDiscovery
                 Marshal.FreeHGlobal(pointer);
         }
 
-        static void FreePointerC(IntPtr pointer )
-        {
-            if (pointer != IntPtr.Zero)
-                Marshal.FreeCoTaskMem(pointer);
-        }
+    static void FreePointerC(IntPtr pointer )
+    {
+        if (pointer != IntPtr.Zero)
+            Marshal.FreeCoTaskMem(pointer);
+    }
 
-        static void FreePointerB(IntPtr pointer)
-        {
-            if (pointer != IntPtr.Zero)
-                Marshal.FreeBSTR(pointer);
-        }
     }
 }
