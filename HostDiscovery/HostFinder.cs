@@ -1,14 +1,10 @@
 ﻿using SMBeagle.NetworkDiscovery;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 
 namespace SMBeagle.HostDiscovery
 {
-    // Find all host listening on TCP 445 - we only care for SMB sharez
     class HostFinder
     {
         private List<Host> _Hosts = new List<Host>();
