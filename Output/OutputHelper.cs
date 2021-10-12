@@ -11,6 +11,7 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
 
 namespace SMBeagle.Output
@@ -47,7 +48,7 @@ namespace SMBeagle.Output
 
         public static void EnableElasticsearchLogging(string nodeUris, string username = "")
         {
-            Username = string.IsNullOrEmpty(username) ? WindowsIdentity.GetCurrent().Name : username;
+            Username = string.IsNullOrEmpty(username) ? Environment.UserName : username;
 
             // Need to do Index template to match the engine
             ElasticsearchLogger = new LoggerConfiguration()
@@ -63,7 +64,7 @@ namespace SMBeagle.Output
 
         public static void EnableCSVLogging(string path, string username="")
         {
-            Username = string.IsNullOrEmpty(username) ? WindowsIdentity.GetCurrent().Name : username;
+            Username = string.IsNullOrEmpty(username) ? Environment.UserName : username;
 
             CsvLogger = new LoggerConfiguration()
                 .WriteTo.File(new CSVFormatter(), path)

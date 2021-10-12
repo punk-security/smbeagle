@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace SMBeagle.FileDiscovery
 {
@@ -43,12 +44,24 @@ namespace SMBeagle.FileDiscovery
 
         public FileFinder(List<string> paths, bool enumerateLocalDrives = true, bool getPermissionsForSingleFileInDir = true, string username="", bool enumerateAcls = true)
         {
-            pClientContext = PermissionHelper.GetpClientContext(username);
-            if (enumerateAcls & pClientContext == IntPtr.Zero)
+            IntPtr pClientContext;
+            #pragma warning disable CA1416
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Console.WriteLine("Error querying user context.  Failing back to a slower ACL identifier.  We can also no longer check  if a file is deletable");
-                if (! getPermissionsForSingleFileInDir)
-                    Console.WriteLine("It is advisable to set the fast flag and only check the ACLs of one file per directory");
+                // If windows attempt API based ACL enumeration
+                pClientContext = WindowsPermissionHelper.GetpClientContext(username);
+                if (enumerateAcls & pClientContext == IntPtr.Zero)
+                {
+                    Console.WriteLine("Error querying user context.  Failing back to a slower ACL identifier.  We can also no longer check  if a file is deletable");
+                    if (!getPermissionsForSingleFileInDir)
+                        Console.WriteLine("It is advisable to set the fast flag and only check the ACLs of one file per directory");
+                }
+
+            }
+            #pragma warning disable CA1416
+            else
+            {
+                pClientContext = IntPtr.Zero;
             }
             paths = new HashSet<string>(paths.ConvertAll(d => d.ToLower())).ToList();
 
@@ -140,9 +153,9 @@ namespace SMBeagle.FileDiscovery
             {
                 ACL permissions;
                 if (pClientContext != IntPtr.Zero)
-                    permissions = PermissionHelper.ResolvePermissionsViaWinApi(file.FullName, pClientContext);
+                    permissions = WindowsPermissionHelper.ResolvePermissions(file.FullName, pClientContext);
                 else
-                    permissions = PermissionHelper.ResolvePermissionsViaFileStream(file.FullName);
+                    permissions = PermissionHelper.ResolvePermissions(file.FullName);
 
                 file.SetPermissionsFromACL(permissions);
 
