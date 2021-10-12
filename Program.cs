@@ -8,6 +8,7 @@ using CommandLine.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace SMBeagle
 {
@@ -103,7 +104,10 @@ namespace SMBeagle
 
             // Enumerate shares
             foreach (Host h in hf.ReachableHosts)
-                ShareFinder.DiscoverDeviceShares(h);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    ShareFinder.DiscoverDeviceSharesWindows(h);
+                else 
+                    ShareFinder.DiscoverDeviceSharesNative(h);
 
             if (!opts.Quiet)
             {

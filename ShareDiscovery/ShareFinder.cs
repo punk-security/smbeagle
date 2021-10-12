@@ -1,10 +1,11 @@
 ﻿using SMBeagle.HostDiscovery;
+using SMBLibrary;
+using SMBLibrary.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SMBeagle.ShareDiscovery
 {
@@ -91,44 +92,64 @@ namespace SMBeagle.ShareDiscovery
             return ShareInfos;
         }
 
-        public static List<Share> GetDeviceShares(string address)
+        public static List<Share> EnumerateSharesViaDirectSmb(string address, string domain = "",string username = "", string password = "")
         {
-            List<SHARE_INFO_1> shareInfos = EnumNetShares(address);
-            List<Share> ret = new List<Share>();
-            foreach (SHARE_INFO_1 si in shareInfos)
+            bool isConnected;
+            ISMBClient client;
+            try
             {
-                Share share = ConvertShareInfoToShare(si);
-                if (share != null)
-                    ret.Add(share);
+                client = new SMB2Client();
+                isConnected = client.Connect(address, SMBTransportType.DirectTCPTransport);
             }
-            return ret;
+            catch
+            {
+                try
+                {
+                    client = new SMB1Client();
+                    isConnected = client.Connect(address, SMBTransportType.DirectTCPTransport);
+                }
+                catch
+                {
+                    return new();
+                }
+            }
+            if (isConnected)
+            {
+                NTStatus status = client.Login(domain, username, password);
+                List<string> shares = new();
+                if (status == NTStatus.STATUS_SUCCESS)
+                {
+                    shares = client.ListShares(out status);
+                }
+                client.Disconnect();
+                return shares.Select(share => new Share(share, Enums.ShareTypeEnum.DISK)).ToList();
+            }
+            return new();
         }
 
-        public static void DiscoverDeviceShares(Host host)
+        public static void DiscoverDeviceSharesWindows(Host host)
         {
-            List<SHARE_INFO_1> shareInfos = EnumNetShares(host.Address);
-            List<Share> ret = new List<Share>();
-            foreach (SHARE_INFO_1 si in shareInfos)
-            {
-                Share share = ConvertShareInfoToShare(si);
-                if (share != null)
-                    host.Shares.Add(share);
-            }
+            EnumNetShares(host.Address)
+                    .ForEach(si => host.Shares.Add(ConvertShareInfoToShare(si)));
         }
 
-        private static Share? ConvertShareInfoToShare(SHARE_INFO_1 shareInfo)
+        public static void DiscoverDeviceSharesNative(Host host)
+        {
+            EnumerateSharesViaDirectSmb(host.Address).ForEach(share => host.Shares.Add(share));
+        }
+
+        private static Share ConvertShareInfoToShare(SHARE_INFO_1 shareInfo)
         {
             switch(shareInfo.shi1_type)
             {
-                case (uint)SHARE_TYPE.STYPE_DISKTREE:
-                    return new Share(shareInfo.shi1_netname, Enums.ShareTypeEnum.DISK);
                 case (uint)SHARE_TYPE.STYPE_CLUSTER_DFS:
                     return new Share(shareInfo.shi1_netname, Enums.ShareTypeEnum.DFS_SHARE);
                 case (uint)SHARE_TYPE.STYPE_CLUSTER_FS:
                     return new Share(shareInfo.shi1_netname, Enums.ShareTypeEnum.CLUSTER_SHARE);
                 case (uint)SHARE_TYPE.STYPE_CLUSTER_SOFS:
                     return new Share(shareInfo.shi1_netname, Enums.ShareTypeEnum.SCALE_OUT_CLUSTER_SHARE);
-                default: return null;
+                default:
+                    return new Share(shareInfo.shi1_netname, Enums.ShareTypeEnum.DISK);
             }
 
 
