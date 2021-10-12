@@ -9,7 +9,7 @@ namespace SMBeagle.FileDiscovery
     class FileFinder
     {
         Dictionary<string, ACL> CacheACL { get; set; } = new();
-        IntPtr UserSID { get; set; }
+        IntPtr pClientContext { get; set; }
         HashSet<string> FilesSentForOutput { get; set; } = new();
 
         List<Directory> _directories { get; set; } = new();
@@ -43,7 +43,13 @@ namespace SMBeagle.FileDiscovery
 
         public FileFinder(List<string> paths, bool enumerateLocalDrives = true, bool getPermissionsForSingleFileInDir = true, string username="", bool enumerateAcls = true)
         {
-            UserSID = PermissionHelper.GetUserSidng(username);
+            pClientContext = PermissionHelper.GetpClientContext(username);
+            if (enumerateAcls & pClientContext == IntPtr.Zero)
+            {
+                Console.WriteLine("Error querying user context.  Failing back to a slower ACL identifier.  We can also no longer check  if a file is deletable");
+                if (! getPermissionsForSingleFileInDir)
+                    Console.WriteLine("It is advisable to set the fast flag and only check the ACLs of one file per directory");
+            }
             paths = new HashSet<string>(paths.ConvertAll(d => d.ToLower())).ToList();
 
             foreach (string path in paths)
@@ -132,8 +138,11 @@ namespace SMBeagle.FileDiscovery
                 file.SetPermissionsFromACL(CacheACL[file.ParentDirectory.Path]);
             else
             {
-                ACL 
-                    permissions = PermissionHelper.ResolvePermissionsng(file.FullName, UserSID);
+                ACL permissions;
+                if (pClientContext != IntPtr.Zero)
+                    permissions = PermissionHelper.ResolvePermissionsViaWinApi(file.FullName, pClientContext);
+                else
+                    permissions = PermissionHelper.ResolvePermissionsViaFileStream(file.FullName);
 
                 file.SetPermissionsFromACL(permissions);
 

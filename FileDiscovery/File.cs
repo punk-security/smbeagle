@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Security.AccessControl;
-using System.Security.Principal;
 
 namespace SMBeagle.FileDiscovery
 {
@@ -25,25 +22,6 @@ namespace SMBeagle.FileDiscovery
             LastWriteTime = lastWriteTime;
             ParentDirectory = parentDirectory;
             FullName = fullName;
-            /*try
-            {
-                AuthorizationRuleCollection rules = acl.GetAccessRules(true, true, typeof(NTAccount));
-                foreach (FileSystemAccessRule rule in rules)
-                {
-                    //todo: ignore system and administrators // presume admins can access everything
-                    //todo: how we do check if user is local admin on target?
-                    if (rule.AccessControlType == AccessControlType.Deny)
-                        continue; //todo: check for a deny rule?  how do we do this without massive work
-                    if ((rule.FileSystemRights & FileSystemRights.WriteData) > 0)
-                        AccountsWhoCanWrite.Add(rule.IdentityReference.Value);
-                    if ((rule.FileSystemRights & FileSystemRights.Delete) > 0)
-                        AccountsWhoCanDelete.Add(rule.IdentityReference.Value);
-                    if ((rule.FileSystemRights & FileSystemRights.ReadData) > 0)
-                        AccountsWhoCanRead.Add(rule.IdentityReference.Value);
-
-                };
-            }
-            catch { };*/
         }
 
         public void SetPermissions(bool read, bool write, bool delete)
