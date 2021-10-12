@@ -47,7 +47,7 @@ namespace SMBeagle.FileDiscovery
             if (enumerateAcls & pClientContext == IntPtr.Zero)
             {
                 Console.WriteLine("Error querying user context.  Failing back to a slower ACL identifier.  We can also no longer check  if a file is deletable");
-                if (getPermissionsForSingleFileInDir)
+                if (! getPermissionsForSingleFileInDir)
                     Console.WriteLine("It is advisable to set the fast flag and only check the ACLs of one file per directory");
             }
             paths = new HashSet<string>(paths.ConvertAll(d => d.ToLower())).ToList();
