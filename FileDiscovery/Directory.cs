@@ -9,7 +9,6 @@ namespace SMBeagle.FileDiscovery
 {
     class Directory
     {
-        //DirectoryInfo DirInfo { get; set; }
         public string Path { get; set; }
         //todo: replace Base and Type with direct copy from parent then drop the ref
         public Directory? Parent { get; set; } = null;
