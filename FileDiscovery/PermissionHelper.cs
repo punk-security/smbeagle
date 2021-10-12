@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SMBeagle.FileDiscovery
 {
@@ -275,7 +272,23 @@ namespace SMBeagle.FileDiscovery
             return acl;
         }
 
-
+        public static ACL ResolvePermissionsng(string path)
+        {
+            ACL acl = new();
+            try
+            {
+                new FileStream(path, FileMode.Open, FileAccess.Read).Dispose();
+                acl.Readable = true;
+            }
+            catch { }
+            try
+            {
+                new FileStream(path, FileMode.Open, FileAccess.Write).Dispose();
+                acl.Writeable = true;
+            }
+            catch { }
+            return acl;
+        }
 
 
         public static IntPtr GetUserSidng(string username)
