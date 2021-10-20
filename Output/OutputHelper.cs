@@ -38,7 +38,7 @@ namespace SMBeagle.Output
         static readonly CompactJsonFormatter _jsonFormatter = new(new JsonValueFormatter(null));
 
         static string Hostname { get; set; } = GetHostname();
-
+        private static string _hostname { get; set; } = "";
         static string Username { get; set; }
 
         #endregion
@@ -101,18 +101,25 @@ namespace SMBeagle.Output
 
         static string GetHostname()
         {
-            string
-                domainName = IPGlobalProperties.GetIPGlobalProperties().DomainName,
-                hostname = Dns.GetHostName();
+            if (_hostname == "")
+            {
+                string
+                    domainName = IPGlobalProperties.GetIPGlobalProperties().DomainName,
+                    hostname = Dns.GetHostName();
 
-            if (domainName == "")
-                domainName = "WORKGROUP";
+                if (domainName == "")
+                    domainName = "WORKGROUP";
 
-            return $"{hostname}.{domainName}";
+                _hostname = $"{hostname}.{domainName}";
+            }
+            return _hostname;
         }
 
         static void LogOut(string msg, IOutputPayload payload)
         {
+            payload.Username = Username;
+            payload.Hostname = Hostname;
+
             if (ElasticsearchLogger != null)
                 ElasticsearchLogger.Information(msg, Hostname, Username, payload);
 

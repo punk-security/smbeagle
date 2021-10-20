@@ -8,5 +8,7 @@ namespace SMBeagle.Output
 {
     public interface IOutputPayload
     {
+        public string Username { get; set; }
+        public string Hostname { get; set; }
     }
 }

@@ -11,6 +11,8 @@ namespace SMBeagle.FileDiscovery.Output
     {
         public string Name { get; set; }
         public string Extension { get; set; }
+        public string Username { get; set; }
+        public string Hostname { get; set; }
         public string Directory { get; set; }
         public DateTime CreationTime { get; set; }
         public DateTime LastWriteTime { get; set; }
