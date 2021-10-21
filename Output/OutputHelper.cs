@@ -84,7 +84,7 @@ namespace SMBeagle.Output
 
         public static void AddPayload(IOutputPayload payload, Enums.OutputtersEnum author)
         {
-            LogOut("{hostname}:{username}:{@" + author + "}", payload);
+            LogOut("{@" + author + "}", payload);
         }
 
         public static void ConsoleWriteLogo()
@@ -120,10 +120,10 @@ namespace SMBeagle.Output
             payload.Hostname = Hostname;
 
             if (ElasticsearchLogger != null)
-                ElasticsearchLogger.Information(msg, Hostname, Username, payload);
+                ElasticsearchLogger.Information(msg, payload);
 
             if (CsvLogger != null)
-                CsvLogger.Information(msg, Hostname, Username, payload);
+                CsvLogger.Information(msg, payload);
         }
 
         #endregion
