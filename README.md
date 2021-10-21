@@ -35,6 +35,9 @@ By outputting directly into elasticsearch, testers can quickly find readable scr
 
 Finding watering hole attacks and unprotected passwords never felt so easy! 🐱‍👤
 
+## Kibana Dashboard
+Please see [Kibana readme](/kibana/README.md)
+
 ## Usage
 
 The only mandatory parameter is to set an output, which should be either an elasticsearch hosts IP address or a csv file.
