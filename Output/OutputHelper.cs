@@ -37,8 +37,7 @@ namespace SMBeagle.Output
 
         static readonly CompactJsonFormatter _jsonFormatter = new(new JsonValueFormatter(null));
 
-        static string Hostname { get; set; } = GetHostname();
-
+        static string Hostname { get; set; }
         static string Username { get; set; }
 
         #endregion
@@ -47,8 +46,7 @@ namespace SMBeagle.Output
 
         public static void EnableElasticsearchLogging(string nodeUris, string username = "")
         {
-            Username = string.IsNullOrEmpty(username) ? WindowsIdentity.GetCurrent().Name : username;
-
+            SetUsernameAndHostname(username);
             // Need to do Index template to match the engine
             ElasticsearchLogger = new LoggerConfiguration()
                 .WriteTo.Elasticsearch(
@@ -63,8 +61,7 @@ namespace SMBeagle.Output
 
         public static void EnableCSVLogging(string path, string username="")
         {
-            Username = string.IsNullOrEmpty(username) ? WindowsIdentity.GetCurrent().Name : username;
-
+            SetUsernameAndHostname(username);
             CsvLogger = new LoggerConfiguration()
                 .WriteTo.File(new CSVFormatter(), path)
                 .CreateLogger();
@@ -87,7 +84,7 @@ namespace SMBeagle.Output
 
         public static void AddPayload(IOutputPayload payload, Enums.OutputtersEnum author)
         {
-            LogOut("{hostname}:{username}:{@" + author + "}", payload);
+            LogOut("{@" + author + "}", payload);
         }
 
         public static void ConsoleWriteLogo()
@@ -111,13 +108,22 @@ namespace SMBeagle.Output
             return $"{hostname}.{domainName}";
         }
 
-        static void LogOut(string msg, IOutputPayload payload)
+        static void SetUsernameAndHostname(string username)
         {
+            Username = string.IsNullOrEmpty(username) ? WindowsIdentity.GetCurrent().Name : username;
+            Hostname = GetHostname();
+        }
+
+            static void LogOut(string msg, IOutputPayload payload)
+        {
+            payload.Username = Username;
+            payload.Hostname = Hostname;
+
             if (ElasticsearchLogger != null)
-                ElasticsearchLogger.Information(msg, Hostname, Username, payload);
+                ElasticsearchLogger.Information(msg, payload);
 
             if (CsvLogger != null)
-                CsvLogger.Information(msg, Hostname, Username, payload);
+                CsvLogger.Information(msg, payload);
         }
 
         #endregion
