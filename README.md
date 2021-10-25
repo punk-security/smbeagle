@@ -7,33 +7,36 @@
                         PRESENTS                        /____/   
 ```                                                       
     
-# SMBeagle v1.0.0
+# SMBeagle v1.0.1
 
 ## Intro
 
 SMBeagle is an (SMB) fileshare auditing tool that hunts out all files it can see in the network 
-and reports if the file can be read and/or written.  All these findgins are streamed out to either
+and reports if the file can be read and/or written.  All these findings are streamed out to either
 a CSV file or an elasticsearch host, or both!?  🚀
 
-SMBeagle tries to make use of the win32 apis for maximum speed, but fails back to a slower ACL check.
+SMBeagle tries to make use of the win32 APIs for maximum speed, but fails back to a slower ACL check.
 
 It has 2 primary use cases:
 
 ### Cast a spotlight on weak share permissions.
 Businesses of all sizes often have file shares with awful file permissions.  
 
-Large businesses have sprawling shares on file servers and its not uncommon to find sensitive data with miscongiured permissions. 
+Large businesses have sprawling shares on file servers and its not uncommon to find sensitive data with misconfigured permissions. 
 
 Small businesses often have a small NAS in the corner of the office with no restrictions at all!
 
 SMBeagle crawls these shares and lists out all the files it can read and write.  If it can read them, so can ransomware. 
     
-### Lateral movement and privilege excalation
+### Lateral movement and privilege escalation
 SMBeagle can provide penetration testers with the less obvious routes to escalate privileges and move laterally.
 
 By outputting directly into elasticsearch, testers can quickly find readable scripts and writeable executables.
 
 Finding watering hole attacks and unprotected passwords never felt so easy! 🐱‍👤
+
+## Kibana Dashboard
+Please see [Kibana readme](/kibana/README.md)
 
 ## Usage
 
@@ -54,7 +57,7 @@ Output to a CSV file:
 Output to elasticsearch (Preffered):
   SMBeagle -e 127.0.0.1
 Disable network discovery and provide manual networks:
-  SMBeagle -D -e 127.0.0.1 -n 192.168.12.0./23 192.168.15.0/24
+  SMBeagle -D -e 127.0.0.1 -n 192.168.12.0/23 192.168.15.0/24
 Scan local filesystem too (SLOW):
   SMBeagle -e 127.0.0.1 -l
 Do not enumerate ACLs (FASTER):

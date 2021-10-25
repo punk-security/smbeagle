@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.14.2
+    container_name: elasticsearch
+    restart: 'no'
+    hostname: elasticsearch
+    ports:
+    - "127.0.0.1:9200:9200"
+    volumes:
+      # - ~/elasticsearch:/usr/share/elasticsearch/data # Linux mapping
+      - C:\elasticsearch:/usr/share/elasticsearch/data # Windows mapping
+    environment:
+      ES_JAVA_OPTS: '-Xms4g -Xmx4g'
+      cluster.name: elasticsearch
+      bootstrap.memory_lock: 'true'
+      network.host: 0.0.0.0
+      http.port: 9200
+      discovery.type: 'single-node'
+      indices.query.bool.max_clause_count: 8192
+      search.max_buckets: 250000
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.14.2
+    container_name: kibana
+    restart: 'no'
+    hostname: kibana
+    depends_on:
+      - elasticsearch
+    ports:
+    - "127.0.0.1:5601:5601"
+    environment:
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 5601
+      ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
+      ELASTICSEARCH_REQUESTTIMEOUT: 132000
+      ELASTICSEARCH_SHARDTIMEOUT: 120000
+      LOGGING_DEST: stdout
