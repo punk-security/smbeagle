@@ -1,0 +1,44 @@
+name: Build and publish release on new tag
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build windows x64
+        run: dotnet publish -c Release --self-contained -r win-x64 -o packages/windows/x64 -p:PublishSingleFile=true
+      - name: version
+        run: echo ::set-output name=version::$(echo $GITHUB_REF | cut -d / -f 3)
+        id: version
+      - name: Create new release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: false
+          release_name: ${{ steps.version.outputs.version }}
+          tag_name: ${{ github.ref }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Create archive
+        run: cd packages/windows/x64 && zip -r win_x64.zip .
+      - name: Upload Win x64 binary
+        uses: actions/upload-release-asset@v1
+        env:
+         GITHUB_TOKEN: ${{ github.token }}
+        with:
+         upload_url: ${{ steps.create_release.outputs.upload_url }}
+         asset_path: ./packages/windows/x64/win_x64.zip
+         asset_name: smbeagle_${{ steps.version.outputs.version }}_win_x64.zip
+         asset_content_type: application/zip
