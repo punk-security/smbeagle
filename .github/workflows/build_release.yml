@@ -37,5 +37,5 @@ jobs:
         with:
          upload_url: ${{ steps.create_release.outputs.upload_url }}
          asset_path: win_x64.zip
-         asset_name: win_x64_${{ github.ref }}.zip
+         asset_name: win_x64_${{ steps.version.outputs.version }}.zip
          asset_content_type: application/zip
