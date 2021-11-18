@@ -1,4 +1,4 @@
-name: Build and publish release
+name: Build and publish release on new tag
 on:
   push:
     tags:
@@ -40,5 +40,5 @@ jobs:
         with:
          upload_url: ${{ steps.create_release.outputs.upload_url }}
          asset_path: ./packages/windows/x64/win_x64.zip
-         asset_name: smbeagle_win_x64_${{ steps.version.outputs.version }}.zip
+         asset_name: smbeagle_${{ steps.version.outputs.version }}_win_x64.zip
          asset_content_type: application/zip
