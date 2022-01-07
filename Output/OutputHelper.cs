@@ -37,7 +37,8 @@ namespace SMBeagle.Output
 
         static readonly CompactJsonFormatter _jsonFormatter = new(new JsonValueFormatter(null));
 
-        static string Hostname { get; set; }
+        static string Hostname { get; set; } = GetHostname();
+
         static string Username { get; set; }
 
         #endregion
@@ -46,7 +47,8 @@ namespace SMBeagle.Output
 
         public static void EnableElasticsearchLogging(string nodeUris, string username = "")
         {
-            SetUsernameAndHostname(username);
+            Username = string.IsNullOrEmpty(username) ? WindowsIdentity.GetCurrent().Name : username;
+
             // Need to do Index template to match the engine
             ElasticsearchLogger = new LoggerConfiguration()
                 .WriteTo.Elasticsearch(
@@ -61,7 +63,8 @@ namespace SMBeagle.Output
 
         public static void EnableCSVLogging(string path, string username="")
         {
-            SetUsernameAndHostname(username);
+            Username = string.IsNullOrEmpty(username) ? WindowsIdentity.GetCurrent().Name : username;
+
             CsvLogger = new LoggerConfiguration()
                 .WriteTo.File(new CSVFormatter(), path)
                 .CreateLogger();
@@ -84,12 +87,21 @@ namespace SMBeagle.Output
 
         public static void AddPayload(IOutputPayload payload, Enums.OutputtersEnum author)
         {
-            LogOut("{@" + author + "}", payload);
+            LogOut("{hostname}:{username}:{@" + author + "}", payload);
         }
 
         public static void ConsoleWriteLogo()
         {
             Console.Write(LOGO);
+        }
+
+        public static void WriteLine(string line, int indent = 0, bool newline = true)
+        {
+            string pad = new(' ', indent * 2);
+            if (newline)
+                Console.WriteLine(pad + line);
+            else
+                Console.Write(pad + line);
         }
 
         #endregion
@@ -108,22 +120,13 @@ namespace SMBeagle.Output
             return $"{hostname}.{domainName}";
         }
 
-        static void SetUsernameAndHostname(string username)
+        static void LogOut(string msg, IOutputPayload payload)
         {
-            Username = string.IsNullOrEmpty(username) ? WindowsIdentity.GetCurrent().Name : username;
-            Hostname = GetHostname();
-        }
-
-            static void LogOut(string msg, IOutputPayload payload)
-        {
-            payload.Username = Username;
-            payload.Hostname = Hostname;
-
             if (ElasticsearchLogger != null)
-                ElasticsearchLogger.Information(msg, payload);
+                ElasticsearchLogger.Information(msg, Hostname, Username, payload);
 
             if (CsvLogger != null)
-                CsvLogger.Information(msg, payload);
+                CsvLogger.Information(msg, Hostname, Username, payload);
         }
 
         #endregion
