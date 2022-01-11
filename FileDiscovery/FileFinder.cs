@@ -41,14 +41,15 @@ namespace SMBeagle.FileDiscovery
             }
         }
 
-        public FileFinder(List<string> paths, bool enumerateLocalDrives = true, bool getPermissionsForSingleFileInDir = true, string username="", bool enumerateAcls = true)
+        public FileFinder(List<string> paths, bool enumerateLocalDrives = true, bool getPermissionsForSingleFileInDir = true, string username="", bool enumerateAcls = true, bool quiet = false, bool verbose = false)
         {
             pClientContext = PermissionHelper.GetpClientContext(username);
-            if (enumerateAcls & pClientContext == IntPtr.Zero)
+            if (enumerateAcls & pClientContext == IntPtr.Zero & !quiet)
             {
-                Console.WriteLine("Error querying user context.  Failing back to a slower ACL identifier.  We can also no longer check  if a file is deletable");
+                OutputHelper.WriteLine("!! Error querying user context.  Failing back to a slower ACL identifier.  ", 1);
+                OutputHelper.WriteLine("    We can also no longer check  if a file is deletable",1);
                 if (! getPermissionsForSingleFileInDir)
-                    Console.WriteLine("It is advisable to set the fast flag and only check the ACLs of one file per directory");
+                    OutputHelper.WriteLine("    It is advisable to set the fast flag and only check the ACLs of one file per directory",1);
             }
             paths = new HashSet<string>(paths.ConvertAll(d => d.ToLower())).ToList();
 
@@ -60,22 +61,30 @@ namespace SMBeagle.FileDiscovery
             if (enumerateLocalDrives)
                 _directories.AddRange(GetLocalDriveDirectories());
 
+            if (!quiet)
+                OutputHelper.WriteLine($"5a. Enumerating all subdirectories for known paths");
             foreach (Directory dir in _directories)
             {
-                Console.WriteLine("Finding dirs for {0}", dir.Path);
+                if (verbose)
+                    OutputHelper.WriteLine($"Enumerating all subdirectories for '{dir.Path}'",1);
                 dir.FindDirectoriesRecursively();
             }
 
-            Console.WriteLine("Splitting dirs");
+            if(!quiet)
+                OutputHelper.WriteLine($"5b. Splitting large directories to optimise caching and to batch output");
 
             SplitLargeDirectories();
 
+            if (!quiet)
+                OutputHelper.WriteLine($"5c. Enumerating directories");
+
             foreach (Directory dir in _directories)
             {
+                OutputHelper.WriteLine($"\renumerating '{dir.Path}'                                          ", 1, false);
                 // TODO: pass in the ignored extensions from the commandline
                 dir.FindFilesRecursively(extensionsToIgnore: new List<string>() { ".dll",".manifest",".cat" });
-
-                Console.WriteLine("Found {0} child directories and {1} files in '{2}'.{3}", dir.ChildDirectories.Count , dir.RecursiveFiles.Count, dir.Path, enumerateAcls ? " Fetching permissions..." : "");
+                if (verbose)
+                    OutputHelper.WriteLine($"\rFound {dir.ChildDirectories.Count} child directories and {dir.RecursiveFiles.Count} files in '{dir.Path}'.{3}",2);
                 
                 foreach (File file in dir.RecursiveFiles)
                 {
@@ -92,6 +101,7 @@ namespace SMBeagle.FileDiscovery
                 dir.Clear();
                 CacheACL.Clear(); // Clear Cached ACLs otherwise it grows and grows
             }
+            OutputHelper.WriteLine($"\r  file enumeration complete, {FilesSentForOutput.Count} files identified                ");
         }
 
         private Enums.DirectoryTypeEnum DriveInfoTypeToDirectoryTypeEnum(DriveType type)

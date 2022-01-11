@@ -7,7 +7,7 @@
                         PRESENTS                        /____/   
 ```                                                       
     
-# SMBeagle v1.0.1
+# SMBeagle v1.1.0
 
 ## Intro
 
@@ -17,7 +17,7 @@ a CSV file or an elasticsearch host, or both!?  🚀
 
 SMBeagle tries to make use of the win32 APIs for maximum speed, but fails back to a slower ACL check.
 
-It has 2 primary use cases:
+It has 2 awesome use cases:
 
 ### Cast a spotlight on weak share permissions.
 Businesses of all sizes often have file shares with awful file permissions.  
@@ -36,16 +36,17 @@ By outputting directly into elasticsearch, testers can quickly find readable scr
 Finding watering hole attacks and unprotected passwords never felt so easy! 🐱‍👤
 
 ## Kibana Dashboard
-Please see [Kibana readme](/kibana/README.md)
+Please see [Kibana readme](/kibana/README.md) for detailed instructions on installing and using the Kibana dashboards which
+provide management visuals and makes data pivoting all the easier.
 
 ## Usage
 
 The only mandatory parameter is to set an output, which should be either an elasticsearch hosts IP address or a csv file.
 
-A good starting point is to enable fast mode and output to csv, but this CSV could get huge!
+A good starting point is to enable fast mode and output to csv, but this CSV could get huge depending on how many files it finds.
 
 ```
-SMBeagle -c out.csv -f
+./SMBeagle.exe -c out.csv -f
 ```
 
 ### Full Usage
@@ -56,8 +57,10 @@ Output to a CSV file:
   SMBeagle -c out.csv
 Output to elasticsearch (Preffered):
   SMBeagle -e 127.0.0.1
+Output to elasticsearch and CSV:
+  SMBeagle -c out.csv -e 127.0.0.1
 Disable network discovery and provide manual networks:
-  SMBeagle -D -e 127.0.0.1 -n 192.168.12.0/23 192.168.15.0/24
+  SMBeagle -D -e 127.0.0.1 -n 192.168.12.0./23 192.168.15.0/24
 Scan local filesystem too (SLOW):
   SMBeagle -e 127.0.0.1 -l
 Do not enumerate ACLs (FASTER):
@@ -90,6 +93,11 @@ Do not enumerate ACLs (FASTER):
 
 ## Architecture
 
-There are a number of loosley coupled modules which hand off to each other.
+SMBeagle does a lot of work, which is broken down into loosely coupled modules which hand off to each other.
+This keeps the design simple and allows us to extend each module easily.
 
 ![Schematic](Docs/schematic.png)
+
+We only run on Windows at the moment, even though we are using dotnetcore which is cross-platform.  SMB support is relatively
+ weak on Linux and we take advantage of a lot of Win32 APIs on the SMB side.  We do have an open issue for this though so 
+ please lend your support if you want to see it.

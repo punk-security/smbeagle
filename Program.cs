@@ -26,6 +26,8 @@ namespace SMBeagle
         {
             if (!opts.Quiet)
                 OutputHelper.ConsoleWriteLogo();
+            else
+                Console.WriteLine("SMBeagle by PunkSecurity [punksecurity.co.uk]");
 
             if (opts.ElasticsearchHost != null)
                 OutputHelper.EnableElasticsearchLogging($"http://{opts.ElasticsearchHost}:9200/");
@@ -39,26 +41,29 @@ namespace SMBeagle
             foreach (string network in opts.Networks)
                 nf.AddNetwork(network, Enums.NetworkDiscoverySourceEnum.ARGS);
 
+            OutputHelper.WriteLine("1. Performing network discovery...");
+
             // Discover networks automagically
             if (!opts.DisableNetworkDiscovery)
                 nf.DiscoverNetworks();
 
+            OutputHelper.WriteLine($"discovered {nf.PrivateNetworks.Count} private networks and {nf.PrivateAddresses.Count} private addresses", 1);
+
             if (!opts.Quiet)
             {
-                Console.WriteLine("Discovery finished, here is the result.  Some networks and addresses may yet be filtered");
-                Console.WriteLine("I have built a list of the following {0} private networks:", nf.PrivateNetworks.Count);
+                OutputHelper.WriteLine("private networks:", 2);
                 foreach (Network pn in nf.PrivateNetworks)
-                    Console.WriteLine(pn);
-                Console.WriteLine("I have built a list of the following {0} private addresses:", nf.PrivateAddresses.Count);
+                    OutputHelper.WriteLine(pn.ToString(), 3);
+                OutputHelper.WriteLine("private addresses:", 2);
                 foreach (string pa in nf.PrivateAddresses)
-                    Console.WriteLine(pa);
+                    OutputHelper.WriteLine(pa.ToString(), 3);
             }
 
             if (opts.Verbose)
             {
-                Console.WriteLine("I have discovered the following {0} addresses:", nf.Addresses.Count);
+                OutputHelper.WriteLine($"discovered but will ignore the following {nf.Addresses.Count} public addresses:", 1);
                 foreach (string pa in nf.Addresses)
-                    Console.WriteLine(pa);
+                    OutputHelper.WriteLine(pa, 2);
             }
             
             // build list of discovered and provided hosts
@@ -67,8 +72,10 @@ namespace SMBeagle
 
             addresses.AddRange(nf.PrivateAddresses);
 
+            OutputHelper.WriteLine("2. Filtering networks and addresses...");
+
             // build list of discovered and provided networks
-            Int16 
+            Int16
                 maxNetworkSizeForScanning = Int16.Parse(opts.MaxNetworkSizeForScanning);
 
             List<Network> networks = nf.PrivateNetworks
@@ -85,45 +92,85 @@ namespace SMBeagle
 
             filteredAddresses.AddRange(opts.ExcludedHosts.ToList());
 
+            OutputHelper.WriteLine($"filtered and have {networks.Count} private networks and {filteredAddresses.Count} private addresses remaining", 1);
+
             if (!opts.Quiet)
             {
-                Console.WriteLine("Filtering is now complete and here is the result");
-                Console.WriteLine("I shall scan the following {0} private networks:", networks.Count);
-                foreach (Network pn in networks)
-                    Console.WriteLine(pn);
+                if (networks.Count > 0)
+                {
+                    OutputHelper.WriteLine("private networks:", 2);
+                    foreach (Network pn in networks)
+                        OutputHelper.WriteLine(pn.ToString(), 3);
+                }
 
-                Console.WriteLine("I shall scan the following {0} private addresses:", addresses.Count);
-                foreach (string pa in filteredAddresses)
-                    Console.WriteLine(pa);
+                if (filteredAddresses.Count > 0)
+                {
+                    OutputHelper.WriteLine("private addresses:", 2);
+                    foreach (string pa in filteredAddresses)
+                        OutputHelper.WriteLine(pa, 3);
+                }
             }
 
+            OutputHelper.WriteLine("3. Probing hosts and scanning networks for SMB port 445...");
+
             // Begin the scan for up hosts
-            HostFinder 
+            HostFinder
                 hf = new(addresses, networks, filteredAddresses);
+
+            OutputHelper.WriteLine($"scanning is complete and we have {hf.ReachableHosts.Count} hosts with reachable SMB services", 1);
+
+            if (opts.Verbose)
+            {
+                OutputHelper.WriteLine($"reachable hosts:", 2);
+                foreach (Host h in hf.ReachableHosts)
+                    OutputHelper.WriteLine(h.Address, 3);
+            }
+
+            OutputHelper.WriteLine("4. Probing SMB services for accessible shares...");
 
             // Enumerate shares
             foreach (Host h in hf.ReachableHosts)
                 ShareFinder.DiscoverDeviceShares(h);
 
+            OutputHelper.WriteLine($"probing is complete and we have {hf.ReachableHosts.Where(item => item.ShareCount > 0).ToList().Count} hosts with accessible shares", 1);
+
             if (!opts.Quiet)
             {
-                Console.WriteLine("Host scanning is now complete.  Reachabled hosts: ");
+                OutputHelper.WriteLine("reachabled hosts with accessible SMB shares:",2);
                 foreach (Host host in hf.ReachableHosts)
-                    Console.WriteLine(host);
+                    OutputHelper.WriteLine(host.Address,3);
             }
-
-            Console.WriteLine("OF {0} reachable hosts, {1} had open shares", hf.ReachableHosts.Count, hf.ReachableHosts.Where(item => item.ShareCount > 0).ToList().Count);
             
             // Build list of uncPaths from up hosts
             List<string> uncPaths = new();
                 foreach (Host h in hf.ReachableHosts.Where(item => item.ShareCount > 0))
                     uncPaths.AddRange(h.UNCPaths);
 
+            if (opts.Verbose)
+            {
+                OutputHelper.WriteLine("accessible SMB shares:", 2);
+                foreach (string uncPath in uncPaths)
+                    OutputHelper.WriteLine(uncPath, 3);
+            }
+
+            OutputHelper.WriteLine("5. Enumerating accessible shares, this can be slow...");
+
             // Find files on all the shares
-            FileFinder 
-                ff = new(paths: uncPaths, getPermissionsForSingleFileInDir: opts.EnumerateOnlyASingleFilesAcl, enumerateLocalDrives: opts.EnumerateLocalDrives, username: "", enumerateAcls: !opts.DontEnumerateAcls);
+            FileFinder
+                ff = new(
+                    paths: uncPaths, 
+                    getPermissionsForSingleFileInDir: opts.EnumerateOnlyASingleFilesAcl, 
+                    enumerateLocalDrives: opts.EnumerateLocalDrives, 
+                    username: "", 
+                    enumerateAcls: !opts.DontEnumerateAcls
+                    );
+
+            OutputHelper.WriteLine("6. Completing the writes to CSV or elasticsearch (or both)");
 
             OutputHelper.CloseAndFlush();
+
+            OutputHelper.WriteLine(" -- AUDIT COMPLETE --");
+
 
             // TODO: know when elasticsearch sink has finished outputting
         }
@@ -211,6 +258,7 @@ namespace SMBeagle
                     unParserSettings.PreferShortName = true;
                     yield return new Example("Output to a CSV file", unParserSettings,new Options { CsvFile = "out.csv" });
                     yield return new Example("Output to elasticsearch (Preffered)", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1" });
+                    yield return new Example("Output to elasticsearch and CSV", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1", CsvFile = "out.csv" });
                     yield return new Example("Disable network discovery and provide manual networks", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1", DisableNetworkDiscovery = true,  Networks = new List<String>() { "192.168.12.0./23", "192.168.15.0/24" } });
                     yield return new Example("Scan local filesystem too (SLOW)", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1", EnumerateLocalDrives = true });
                     yield return new Example("Do not enumerate ACLs (FASTER)", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1", DontEnumerateAcls = true });
