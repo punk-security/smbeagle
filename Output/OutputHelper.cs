@@ -91,6 +91,8 @@ namespace SMBeagle.Output
 
         public static void AddPayload(IOutputPayload payload, Enums.OutputtersEnum author)
         {
+            payload.Hostname = Hostname;
+            payload.Username = Username;
             LogOut("{hostname}:{username}:{@" + author + "}", payload);
         }
 
