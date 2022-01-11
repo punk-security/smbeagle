@@ -8,7 +8,9 @@ namespace SMBeagle.FileDiscovery
     {
         public string Path { get; set; }
         //todo: replace Base and Type with direct copy from parent then drop the ref
+        #nullable enable
         public Directory? Parent { get; set; } = null;
+        #nullable disable
         public Directory Base { get
             {
                 if (Parent == null)
