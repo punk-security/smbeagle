@@ -1,0 +1,25 @@
+name: Build and upload preview build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build windows x64
+      run: |
+        dotnet sonarscanner begin o:punk-security /k:punk-security_SMBeagle  /d:sonar.host.url=https://sonarcloud.io
+        dotnet publish -c Release --self-contained -r win-x64 -o packages/windows/x64 -p:PublishSingleFile=true
+        dotnet sonarscanner enddotnet publish -c Release --self-contained -r win-x64 -o packages/windows/x64 -p:PublishSingleFile=true
