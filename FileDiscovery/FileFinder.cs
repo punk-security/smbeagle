@@ -93,7 +93,7 @@ namespace SMBeagle.FileDiscovery
                 // TODO: pass in the ignored extensions from the commandline
                 dir.FindFilesRecursively(extensionsToIgnore: new List<string>() { ".dll",".manifest",".cat" });
                 if (verbose)
-                    OutputHelper.WriteLine($"\rFound {dir.ChildDirectories.Count} child directories and {dir.RecursiveFiles.Count} files in '{dir.Path}'.{3}",2);
+                    OutputHelper.WriteLine($"\rFound {dir.ChildDirectories.Count} child directories and {dir.RecursiveFiles.Count} files in '{dir.Path}'",2);
                 
                 foreach (File file in dir.RecursiveFiles)
                 {
