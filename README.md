@@ -7,7 +7,7 @@
                         PRESENTS                        /____/   
 ```                                                       
     
-# SMBeagle v1.1.0
+# SMBeagle v1.1.1
 
 ## Intro
 
