@@ -37,9 +37,15 @@ namespace SMBeagle.Output
 
         static readonly CompactJsonFormatter _jsonFormatter = new(new JsonValueFormatter(null));
 
-        static string Hostname { get; set; } = GetHostname();
+        static string Hostname { get; set; }
 
         static string Username { get; set; }
+
+        static void SetUsernameAndHostname(string username)
+        {
+            Username = string.IsNullOrEmpty(username) ? Environment.UserName : username;
+            Hostname = GetHostname();
+        }
 
         #endregion
 
@@ -47,8 +53,7 @@ namespace SMBeagle.Output
 
         public static void EnableElasticsearchLogging(string nodeUris, string username = "")
         {
-            Username = string.IsNullOrEmpty(username) ? WindowsIdentity.GetCurrent().Name : username;
-
+            SetUsernameAndHostname(username);
             // Need to do Index template to match the engine
             ElasticsearchLogger = new LoggerConfiguration()
                 .WriteTo.Elasticsearch(
@@ -63,8 +68,7 @@ namespace SMBeagle.Output
 
         public static void EnableCSVLogging(string path, string username="")
         {
-            Username = string.IsNullOrEmpty(username) ? WindowsIdentity.GetCurrent().Name : username;
-
+            SetUsernameAndHostname(username);
             CsvLogger = new LoggerConfiguration()
                 .WriteTo.File(new CSVFormatter(), path)
                 .CreateLogger();
@@ -87,6 +91,8 @@ namespace SMBeagle.Output
 
         public static void AddPayload(IOutputPayload payload, Enums.OutputtersEnum author)
         {
+            payload.Hostname = Hostname;
+            payload.Username = Username;
             LogOut("{hostname}:{username}:{@" + author + "}", payload);
         }
 

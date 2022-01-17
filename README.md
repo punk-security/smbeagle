@@ -13,6 +13,7 @@
                         PRESENTS                        /____/   
 ```                                                       
     
+=======
 # SMBeagle
 
 ## Intro
@@ -42,8 +43,14 @@ By outputting directly into elasticsearch, testers can quickly find readable scr
 Finding watering hole attacks and unprotected passwords never felt so easy! 🐱‍👤
 
 ## Kibana Dashboard
-Please see [Kibana readme](/kibana/README.md) for detailed instructions on installing and using the Kibana dashboards which
+Please see [Kibana readme](Kibana/README.md) for detailed instructions on installing and using the Kibana dashboards which
 provide management visuals and makes data pivoting all the easier.
+
+## Installation
+
+* Go to the latest release on the right-hand side of the repo >>>>  
+* Download the win_x64.zip (only 64bit is supported at the moment)
+* Unzip the download and run SMBeagle.exe from a command prompt or powershell terminal
 
 ## Usage
 

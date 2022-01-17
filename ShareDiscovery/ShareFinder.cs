@@ -116,19 +116,18 @@ namespace SMBeagle.ShareDiscovery
             }
         }
 
-        private static Share? ConvertShareInfoToShare(SHARE_INFO_1 shareInfo)
+        private static Share ConvertShareInfoToShare(SHARE_INFO_1 shareInfo)
         {
             switch(shareInfo.shi1_type)
             {
-                case (uint)SHARE_TYPE.STYPE_DISKTREE:
-                    return new Share(shareInfo.shi1_netname, Enums.ShareTypeEnum.DISK);
                 case (uint)SHARE_TYPE.STYPE_CLUSTER_DFS:
                     return new Share(shareInfo.shi1_netname, Enums.ShareTypeEnum.DFS_SHARE);
                 case (uint)SHARE_TYPE.STYPE_CLUSTER_FS:
                     return new Share(shareInfo.shi1_netname, Enums.ShareTypeEnum.CLUSTER_SHARE);
                 case (uint)SHARE_TYPE.STYPE_CLUSTER_SOFS:
                     return new Share(shareInfo.shi1_netname, Enums.ShareTypeEnum.SCALE_OUT_CLUSTER_SHARE);
-                default: return null;
+                default: 
+                    return new Share(shareInfo.shi1_netname, Enums.ShareTypeEnum.DISK);
             }
 
 

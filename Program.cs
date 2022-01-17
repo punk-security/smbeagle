@@ -162,7 +162,8 @@ namespace SMBeagle
                     getPermissionsForSingleFileInDir: opts.EnumerateOnlyASingleFilesAcl, 
                     enumerateLocalDrives: opts.EnumerateLocalDrives, 
                     username: "", 
-                    enumerateAcls: !opts.DontEnumerateAcls
+                    enumerateAcls: !opts.DontEnumerateAcls,
+                    verbose: opts.Verbose
                     );
 
             OutputHelper.WriteLine("6. Completing the writes to CSV or elasticsearch (or both)");

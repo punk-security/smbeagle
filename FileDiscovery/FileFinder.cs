@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace SMBeagle.FileDiscovery
 {
@@ -43,14 +44,22 @@ namespace SMBeagle.FileDiscovery
 
         public FileFinder(List<string> paths, bool enumerateLocalDrives = true, bool getPermissionsForSingleFileInDir = true, string username="", bool enumerateAcls = true, bool quiet = false, bool verbose = false)
         {
-            pClientContext = PermissionHelper.GetpClientContext(username);
-            if (enumerateAcls & pClientContext == IntPtr.Zero & !quiet)
+
+            IntPtr pClientContext = IntPtr.Zero;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                OutputHelper.WriteLine("!! Error querying user context.  Failing back to a slower ACL identifier.  ", 1);
-                OutputHelper.WriteLine("    We can also no longer check  if a file is deletable",1);
-                if (! getPermissionsForSingleFileInDir)
-                    OutputHelper.WriteLine("    It is advisable to set the fast flag and only check the ACLs of one file per directory",1);
+                #pragma warning disable CA1416
+                pClientContext = WindowsPermissionHelper.GetpClientContext(username);
+                if (enumerateAcls & pClientContext == IntPtr.Zero & !quiet)
+                {
+                    OutputHelper.WriteLine("!! Error querying user context.  Failing back to a slower ACL identifier.  ", 1);
+                    OutputHelper.WriteLine("    We can also no longer check  if a file is deletable", 1);
+                    if (!getPermissionsForSingleFileInDir)
+                        OutputHelper.WriteLine("    It is advisable to set the fast flag and only check the ACLs of one file per directory", 1);
+                }
+                #pragma warning restore CA1416
             }
+
             paths = new HashSet<string>(paths.ConvertAll(d => d.ToLower())).ToList();
 
             foreach (string path in paths)
@@ -84,7 +93,7 @@ namespace SMBeagle.FileDiscovery
                 // TODO: pass in the ignored extensions from the commandline
                 dir.FindFilesRecursively(extensionsToIgnore: new List<string>() { ".dll",".manifest",".cat" });
                 if (verbose)
-                    OutputHelper.WriteLine($"\rFound {dir.ChildDirectories.Count} child directories and {dir.RecursiveFiles.Count} files in '{dir.Path}'.{3}",2);
+                    OutputHelper.WriteLine($"\rFound {dir.ChildDirectories.Count} child directories and {dir.RecursiveFiles.Count} files in '{dir.Path}'",2);
                 
                 foreach (File file in dir.RecursiveFiles)
                 {
@@ -150,9 +159,11 @@ namespace SMBeagle.FileDiscovery
             {
                 ACL permissions;
                 if (pClientContext != IntPtr.Zero)
-                    permissions = PermissionHelper.ResolvePermissionsViaWinApi(file.FullName, pClientContext);
+                    #pragma warning disable CA1416
+                    permissions = WindowsPermissionHelper.ResolvePermissions(file.FullName, pClientContext);
+                    #pragma warning restore CA1416
                 else
-                    permissions = PermissionHelper.ResolvePermissionsViaFileStream(file.FullName);
+                    permissions = PermissionHelper.ResolvePermissions(file.FullName);
 
                 file.SetPermissionsFromACL(permissions);
 
