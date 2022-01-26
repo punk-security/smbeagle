@@ -39,13 +39,26 @@ namespace SMBeagle
                 nf = new();
 
             foreach (string network in opts.Networks)
+            {
+                Console.WriteLine($"DEBUG: adding manual network '{network}'");
                 nf.AddNetwork(network, Enums.NetworkDiscoverySourceEnum.ARGS);
+            }
+
+            foreach (Network net in nf.Networks)
+            {
+                Console.WriteLine($"DEBUG:Program:ManualNetworks:Net:{net}");
+            }
 
             OutputHelper.WriteLine("1. Performing network discovery...");
 
             // Discover networks automagically
             if (!opts.DisableNetworkDiscovery)
                 nf.DiscoverNetworks();
+
+            foreach (Network net in nf.Networks)
+            {
+                Console.WriteLine($"DEBUG:Program:AllNetworks:Net:{net}");
+            }
 
             OutputHelper.WriteLine($"discovered {nf.PrivateNetworks.Count} private networks and {nf.PrivateAddresses.Count} private addresses", 1);
 
