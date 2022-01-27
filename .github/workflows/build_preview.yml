@@ -21,7 +21,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build windows x64
-      run: dotnet publish -c Release --self-contained -r win-x64 -o packages\windows\x64 -p:PublishSingleFile=true
+      run: dotnet publish -c Release --self-contained -r win-x64 -o packages\windows\x64 -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false
     - name: Install signing tool
       run: dotnet tool install --global AzureSignTool
     - name: Digitally sign executable
