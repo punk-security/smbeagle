@@ -26,8 +26,11 @@ jobs:
       run: dotnet tool install --global AzureSignTool
     - name: Digitally sign executable
       env:
-        CERT_SECRET: ${{ secrets.AZUREKEYVAULTCLIENTSECRET }}
-      run: azuresigntool sign -kvt b5dc9f10-7402-4a62-8000-73efe61b1c16 -kvu "https://punk-hsm-vault.vault.azure.net/" -kvi "32a1a1bf-ce05-48fc-80fb-83ed5e95029f" -kvs "$env:CERT_SECRET" -kvc "PunkSecurity-CodeSigningCert-2022" -tr http://timestamp.globalsign.com/tsa/r6advanced1 -v .\packages\windows\x64\SMBeagle.exe
+        CERT_APP_SECRET: ${{ secrets.AZUREKEYVAULTCLIENTSECRET }}
+        CERT_APP_ID: ${{ secrets.AZUREKEYVAULTAPPLICATIONID }}
+        TENANT_ID: ${{ secrets.AZUREKEYVAULTTENANTID }}
+        VAULT_URI: ${{ secrets.AZUREKEYVAULTURI }}
+      run: azuresigntool sign -kvt "$env:TENANT_ID" -kvu "$env:VAULT_URI" -kvi "$env:CERT_APP_ID" -kvs "$env:CERT_APP_SECRET" -kvc "PunkSecurity-CodeSigningCert-2022" -tr http://timestamp.globalsign.com/tsa/r6advanced1 -v .\packages\windows\x64\SMBeagle.exe
     - name: Upload windows x64
       uses: actions/upload-artifact@v2
       with:
