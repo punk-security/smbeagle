@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-2019
 
     steps:
       - uses: actions/checkout@v2
@@ -17,10 +17,20 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
       - name: Build windows x64
-        run: dotnet publish -c Release --self-contained -r win-x64 -o packages/windows/x64 -p:PublishSingleFile=true
+        run: dotnet publish -c Release --self-contained -r win-x64 -o packages\windows\x64 -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false
       - name: version
         run: echo ::set-output name=version::$(echo $GITHUB_REF | cut -d / -f 3)
+        shell: bash
         id: version
+      - name: Install signing tool
+        run: dotnet tool install --global AzureSignTool
+      - name: Digitally sign executable
+        env:
+          CERT_APP_SECRET: ${{ secrets.AZUREKEYVAULTCLIENTSECRET }}
+          CERT_APP_ID: ${{ secrets.AZUREKEYVAULTAPPLICATIONID }}
+          TENANT_ID: ${{ secrets.AZUREKEYVAULTTENANTID }}
+          VAULT_URI: ${{ secrets.AZUREKEYVAULTURI }}
+        run: azuresigntool sign -kvt "$env:TENANT_ID" -kvu "$env:VAULT_URI" -kvi "$env:CERT_APP_ID" -kvs "$env:CERT_APP_SECRET" -kvc "PunkSecurity-CodeSigningCert-2022" -tr http://timestamp.globalsign.com/tsa/r6advanced1 -v .\packages\windows\x64\SMBeagle.exe
       - name: Create new release
         uses: actions/create-release@v1
         id: create_release
@@ -32,13 +42,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
       - name: Create archive
-        run: cd packages/windows/x64 && zip -r win_x64.zip .
+        run: Compress-Archive -DestinationPath .\win_x64.zip -Path .\packages\windows\x64
       - name: Upload Win x64 binary
         uses: actions/upload-release-asset@v1
         env:
          GITHUB_TOKEN: ${{ github.token }}
         with:
          upload_url: ${{ steps.create_release.outputs.upload_url }}
-         asset_path: ./packages/windows/x64/win_x64.zip
+         asset_path: .\win_x64.zip
          asset_name: smbeagle_${{ steps.version.outputs.version }}_win_x64.zip
          asset_content_type: application/zip
