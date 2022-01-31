@@ -14,7 +14,16 @@ namespace SMBeagle.NetworkDiscovery
             {
                 return _Networks.Where(item => item.IsPrivate == true).ToList();
             }
-}
+        }
+
+        public List<Network> PublicNetworks
+        {
+            get
+            {
+                return _Networks.Where(item => item.IsPrivate == false).ToList();
+            }
+        }
+
         List<Network> _Networks = new List<Network>();
         List<string> _Addresses = new List<string>();
         List<string> _LocalAddresses = new List<string>();
@@ -24,6 +33,13 @@ namespace SMBeagle.NetworkDiscovery
             get
             {
                 return _Addresses.Where(item => Network.IsPrivateAddress(item) == true).ToList();
+            }
+        }
+        public List<string> PublicAddresses
+        {
+            get
+            {
+                return _Addresses.Where(item => Network.IsPrivateAddress(item) == false).ToList();
             }
         }
         public List<string> Addresses { get { return _Addresses; } }

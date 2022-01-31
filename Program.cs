@@ -74,9 +74,12 @@ namespace SMBeagle
 
             if (opts.Verbose)
             {
-                OutputHelper.WriteLine($"discovered but will ignore the following {nf.Addresses.Count} public addresses:", 1);
-                foreach (string pa in nf.Addresses)
+                OutputHelper.WriteLine($"discovered but will ignore the following {nf.PublicAddresses.Count} public addresses:", 1);
+                foreach (string pa in nf.PublicAddresses)
                     OutputHelper.WriteLine(pa, 2);
+                OutputHelper.WriteLine($"discovered but will ignore the following {nf.PublicNetworks.Count} public networks:", 1);
+                foreach (Network pn in nf.PublicNetworks)
+                    OutputHelper.WriteLine(pn.ToString(), 2);
             }
             
             // build list of discovered and provided hosts
