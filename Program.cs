@@ -38,102 +38,137 @@ namespace SMBeagle
             NetworkFinder 
                 nf = new();
 
-            foreach (string network in opts.Networks)
-            {
-                Console.WriteLine($"DEBUG: adding manual network '{network}'");
-                nf.AddNetwork(network, Enums.NetworkDiscoverySourceEnum.ARGS);
-            }
-
-            foreach (Network net in nf.Networks)
-            {
-                Console.WriteLine($"DEBUG:Program:ManualNetworks:Net:{net}");
-            }
-
-            OutputHelper.WriteLine("1. Performing network discovery...");
-
             // Discover networks automagically
             if (!opts.DisableNetworkDiscovery)
+            {
+                OutputHelper.WriteLine("1. Performing network discovery...");
                 nf.DiscoverNetworks();
 
-            foreach (Network net in nf.Networks)
-            {
-                Console.WriteLine($"DEBUG:Program:AllNetworks:Net:{net}");
+                OutputHelper.WriteLine($"discovered {nf.PrivateNetworks.Count} private networks and {nf.PrivateAddresses.Count} private addresses", 1);
+
+                if (!opts.Quiet)
+                {
+                    OutputHelper.WriteLine("private networks:", 2);
+                    foreach (Network pn in nf.PrivateNetworks)
+                        OutputHelper.WriteLine(pn.ToString(), 3);
+                    OutputHelper.WriteLine("private addresses:", 2);
+                    foreach (string pa in nf.PrivateAddresses)
+                        OutputHelper.WriteLine(pa.ToString(), 3);
+                }
+
+                if (opts.Verbose)
+                {
+                    OutputHelper.WriteLine($"discovered but will ignore the following {nf.PublicAddresses.Count} public addresses:", 1);
+                    foreach (string pa in nf.PublicAddresses)
+                        OutputHelper.WriteLine(pa, 2);
+                    OutputHelper.WriteLine($"discovered but will ignore the following {nf.DiscoveredPublicNetworks.Count} public networks:", 1);
+                    foreach (Network pn in nf.PublicNetworks)
+                        OutputHelper.WriteLine(pn.ToString(), 2);
+                }
             }
-
-            OutputHelper.WriteLine($"discovered {nf.PrivateNetworks.Count} private networks and {nf.PrivateAddresses.Count} private addresses", 1);
-
-            if (!opts.Quiet)
+                
+            else
             {
-                OutputHelper.WriteLine("private networks:", 2);
-                foreach (Network pn in nf.PrivateNetworks)
-                    OutputHelper.WriteLine(pn.ToString(), 3);
-                OutputHelper.WriteLine("private addresses:", 2);
-                foreach (string pa in nf.PrivateAddresses)
-                    OutputHelper.WriteLine(pa.ToString(), 3);
+                OutputHelper.WriteLine("1. Skipping network discovery due to -D switch...");
             }
-
-            if (opts.Verbose)
-            {
-                OutputHelper.WriteLine($"discovered but will ignore the following {nf.PublicAddresses.Count} public addresses:", 1);
-                foreach (string pa in nf.PublicAddresses)
-                    OutputHelper.WriteLine(pa, 2);
-                OutputHelper.WriteLine($"discovered but will ignore the following {nf.PublicNetworks.Count} public networks:", 1);
-                foreach (Network pn in nf.PublicNetworks)
-                    OutputHelper.WriteLine(pn.ToString(), 2);
-            }
-            
-            // build list of discovered and provided hosts
-            List<string> 
-                addresses = opts.Hosts.ToList();
-
-            addresses.AddRange(nf.PrivateAddresses);
-
-            OutputHelper.WriteLine("2. Filtering networks and addresses...");
-
-            // build list of discovered and provided networks
-            Int16
-                maxNetworkSizeForScanning = Int16.Parse(opts.MaxNetworkSizeForScanning);
-
-            List<Network> networks = nf.PrivateNetworks
-                .Where(item => item.IPVersion == 4) // We cannot scan ipv6 networks, they are HUGE, but we do scan the ipv6 hosts
-                .Where(item => Int16.Parse(item.Cidr) >= maxNetworkSizeForScanning)
-                .Where(item => !opts.ExcludedNetworks.Contains(item.ToString()))
-                .ToList();
 
             // build list of provided exclusions
             List<string> filteredAddresses = new();
+            List<Network> networks = new();
 
-            if (opts.DisableLocalShares)
-                filteredAddresses.AddRange(nf.LocalAddresses);
-
-            filteredAddresses.AddRange(opts.ExcludedHosts.ToList());
-
-            OutputHelper.WriteLine($"filtered and have {networks.Count} private networks and {filteredAddresses.Count} private addresses remaining", 1);
-
-            if (!opts.Quiet)
+            if (!opts.DisableNetworkDiscovery)
             {
-                if (networks.Count > 0)
-                {
-                    OutputHelper.WriteLine("private networks:", 2);
-                    foreach (Network pn in networks)
-                        OutputHelper.WriteLine(pn.ToString(), 3);
-                }
+                OutputHelper.WriteLine("2. Filtering discovered networks and addresses...");
 
-                if (filteredAddresses.Count > 0)
+                // build list of discovered and provided networks
+                Int16
+                    maxNetworkSizeForScanning = Int16.Parse(opts.MaxNetworkSizeForScanning);
+
+                networks = nf.PrivateNetworks
+                    .Where(item => item.IPVersion == 4) // We cannot scan ipv6 networks, they are HUGE, but we do scan the ipv6 hosts
+                    .Where(item => Int16.Parse(item.Cidr) >= maxNetworkSizeForScanning)
+                    .Where(item => !opts.ExcludedNetworks.Contains(item.ToString()))
+                    .ToList();
+
+                if (opts.DisableLocalShares)
+                    filteredAddresses.AddRange(nf.LocalAddresses);
+
+                filteredAddresses.AddRange(opts.ExcludedHosts.ToList());
+
+                OutputHelper.WriteLine($"filtered and have {networks.Count} private networks to scan and {filteredAddresses.Count} private addresses to exclude", 1);
+
+                if (!opts.Quiet)
                 {
-                    OutputHelper.WriteLine("private addresses:", 2);
-                    foreach (string pa in filteredAddresses)
-                        OutputHelper.WriteLine(pa, 3);
+                    if (networks.Count > 0)
+                    {
+                        OutputHelper.WriteLine("private networks to scan:", 2);
+                        foreach (Network pn in networks)
+                            OutputHelper.WriteLine(pn.ToString(), 3);
+                    }
+
+
+                    if (filteredAddresses.Count > 0)
+                    {
+                        OutputHelper.WriteLine("private addresses to exclude:", 2);
+                        foreach (string pa in filteredAddresses)
+                            OutputHelper.WriteLine(pa, 3);
+                    }
                 }
             }
+            else
+            {
+                OutputHelper.WriteLine("2. Skipping filtering as network discovery disabled...");
+            }
 
-            OutputHelper.WriteLine("3. Probing hosts and scanning networks for SMB port 445...");
+
+            List<string> addresses = new();
+
+            if (opts.Networks.Count() > 0 | opts.Hosts.Count() > 0)
+            {
+                OutputHelper.WriteLine("3. Processing manual networks and addresses...");
+                foreach (string network in opts.Networks)
+                {
+                    networks.Add(
+                        new Network(network, Enums.NetworkDiscoverySourceEnum.ARGS)
+                        );
+                    OutputHelper.WriteLine($"added network '{network}'", 1);
+
+                }
+
+                foreach (string address in opts.Hosts)
+                {
+                    addresses.Add(address);
+                    OutputHelper.WriteLine($"added host '{address}'", 1);
+
+                }
+
+            }
+            else
+            {
+                OutputHelper.WriteLine("3. No manual networks or addresses provided, skipping...");
+            }
+
+            if (addresses.Count == 0 & networks.Count == 0)
+            {
+                OutputHelper.WriteLine("After filtering - there are no networks or hosts to scan...");
+                Environment.Exit(0);
+            }
+
+            OutputHelper.WriteLine("4. Probing hosts and scanning networks for SMB port 445...");
+
+            //TODO: add none quiet output to show what we are scanning at this point - nets, hosts and exclusiosn
 
             // Begin the scan for up hosts
             HostFinder
                 hf = new(addresses, networks, filteredAddresses);
 
             OutputHelper.WriteLine($"scanning is complete and we have {hf.ReachableHosts.Count} hosts with reachable SMB services", 1);
+
+            if (hf.ReachableHosts.Count == 0)
+            {
+                OutputHelper.WriteLine("There are no hosts with accessible SMB shares...");
+                Environment.Exit(0);
+            }
 
             if (opts.Verbose)
             {
@@ -142,18 +177,24 @@ namespace SMBeagle
                     OutputHelper.WriteLine(h.Address, 3);
             }
 
-            OutputHelper.WriteLine("4. Probing SMB services for accessible shares...");
+            OutputHelper.WriteLine("5. Probing SMB services for accessible shares...");
 
             // Enumerate shares
             foreach (Host h in hf.ReachableHosts)
                 ShareFinder.DiscoverDeviceShares(h);
 
-            OutputHelper.WriteLine($"probing is complete and we have {hf.ReachableHosts.Where(item => item.ShareCount > 0).ToList().Count} hosts with accessible shares", 1);
+            OutputHelper.WriteLine($"probing is complete and we have {hf.HostsWithShares.Count} hosts with accessible shares", 1);
+
+            if (hf.HostsWithShares.Count == 0)
+            {
+                OutputHelper.WriteLine("There are no hosts with accessible SMB shares...");
+                Environment.Exit(0);
+            }
 
             if (!opts.Quiet)
             {
                 OutputHelper.WriteLine("reachabled hosts with accessible SMB shares:",2);
-                foreach (Host host in hf.ReachableHosts)
+                foreach (Host host in hf.HostsWithShares)
                     OutputHelper.WriteLine(host.Address,3);
             }
             
@@ -169,7 +210,7 @@ namespace SMBeagle
                     OutputHelper.WriteLine(uncPath, 3);
             }
 
-            OutputHelper.WriteLine("5. Enumerating accessible shares, this can be slow...");
+            OutputHelper.WriteLine("6. Enumerating accessible shares, this can be slow...");
 
             // Find files on all the shares
             FileFinder
@@ -182,7 +223,7 @@ namespace SMBeagle
                     verbose: opts.Verbose
                     );
 
-            OutputHelper.WriteLine("6. Completing the writes to CSV or elasticsearch (or both)");
+            OutputHelper.WriteLine("7. Completing the writes to CSV or elasticsearch (or both)");
 
             OutputHelper.CloseAndFlush();
 

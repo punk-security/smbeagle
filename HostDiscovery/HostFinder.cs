@@ -9,6 +9,7 @@ namespace SMBeagle.HostDiscovery
     {
         private List<Host> _Hosts = new List<Host>();
         public List<Host> ReachableHosts { get { return _Hosts.Where(item => item.SMBAvailable).ToList(); } }
+        public List<Host> HostsWithShares { get { return ReachableHosts.Where(item => item.ShareCount > 0).ToList(); } }
         private List<string> _Candidates = new List<string>();
         public HostFinder(List<string> knownHostAddresses, List<Network> knownNetworks, List<string> blacklistedAddresses )
         {

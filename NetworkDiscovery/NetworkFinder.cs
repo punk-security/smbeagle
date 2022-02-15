@@ -24,6 +24,14 @@ namespace SMBeagle.NetworkDiscovery
             }
         }
 
+        public List<Network> DiscoveredPublicNetworks
+        {
+            get
+            {
+                return PublicNetworks.Where(item => item.Source != NetworkDiscoverySourceEnum.ARGS).ToList();
+            }
+        }
+
         List<Network> _Networks = new List<Network>();
         List<string> _Addresses = new List<string>();
         List<string> _LocalAddresses = new List<string>();
@@ -67,39 +75,33 @@ namespace SMBeagle.NetworkDiscovery
         public void AddNetwork(string network, NetworkDiscoverySourceEnum source)
         {
             Network net = new Network(network, source);
-            Console.WriteLine($"DEBUG:AddNetwork:{net}");
             AddNetwork(net);
         }
         public void AddNetwork(Network network)
         {
             if (network.Value == "::/64" || network.Address == "127.0.0.0")
             {
-                Console.WriteLine("DEBUG:AddNetwork:ipv6 or loopback");
                 return;
             }
             // return without storing if this network already exists
             if (_Networks.Any(item => item.Value == network.Value))
             {
-                Console.WriteLine("DEBUG:AddNetwork:already exists");
                 return;
             }            // return without storing if network is child of another already tracked
             if (_Networks.Any(item => item.ContainsNetwork(network)))
             {
-                Console.WriteLine("DEBUG:AddNetwork:Contained within another net");
                 return;
             }            // remove childnet if this network fully contains it
             // todo: are there edge cases where we want to keep child nets?
             List<Network> iter = new List<Network>(_Networks);
             foreach ( Network net in iter)
             {
-                Console.WriteLine($"DEBUG:AddNetwork:CurrentNetworksLoop:CurrentNet{net}");
                 if (network.ContainsNetwork(net))
                     _Networks.Remove(net);
             }
             _Networks.Add(network);
             foreach (Network net in _Networks)
             {
-                Console.WriteLine($"DEBUG:AddNetwork:TrimmedNetworksLoop:CurrentNet{net}");
             }
         }
         public void DiscoverNetworks()
