@@ -45,7 +45,7 @@ namespace SMBeagle.FileDiscovery
         public FileFinder(List<string> paths, bool enumerateLocalDrives = true, bool getPermissionsForSingleFileInDir = true, string username="", bool enumerateAcls = true, bool quiet = false, bool verbose = false)
         {
 
-            IntPtr pClientContext = IntPtr.Zero;
+            pClientContext = IntPtr.Zero;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 #pragma warning disable CA1416
