@@ -123,7 +123,7 @@ namespace SMBeagle
 
             List<string> addresses = new();
 
-            if (opts.Networks.Count() > 0 | opts.Hosts.Count() > 0)
+            if (opts.Networks.Any() || opts.Hosts.Any())
             {
                 OutputHelper.WriteLine("3. Processing manual networks and addresses...");
                 foreach (string network in opts.Networks)
@@ -148,7 +148,7 @@ namespace SMBeagle
                 OutputHelper.WriteLine("3. No manual networks or addresses provided, skipping...");
             }
 
-            if (addresses.Count == 0 & networks.Count == 0)
+            if (addresses.Count == 0 && networks.Count == 0)
             {
                 OutputHelper.WriteLine("After filtering - there are no networks or hosts to scan...");
                 Environment.Exit(0);

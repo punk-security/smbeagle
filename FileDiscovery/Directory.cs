@@ -82,7 +82,6 @@ namespace SMBeagle.FileDiscovery
         {
             Files.Clear();
             ChildDirectories.Clear();
-            GC.Collect();
         }
 
         private void FindDirectories()

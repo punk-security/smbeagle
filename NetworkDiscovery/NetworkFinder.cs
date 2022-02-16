@@ -12,7 +12,7 @@ namespace SMBeagle.NetworkDiscovery
         public List<Network> PrivateNetworks { 
             get 
             {
-                return _Networks.Where(item => item.IsPrivate == true).ToList();
+                return _Networks.Where(item => item.IsPrivate).ToList();
             }
         }
 
@@ -20,7 +20,7 @@ namespace SMBeagle.NetworkDiscovery
         {
             get
             {
-                return _Networks.Where(item => item.IsPrivate == false).ToList();
+                return _Networks.Where(item => !item.IsPrivate).ToList();
             }
         }
 
