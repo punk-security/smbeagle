@@ -14,7 +14,6 @@ namespace SMBeagle.FileDiscovery.Output
         public string Extension { get; set; }
         public string Username { get; set; }
         public string Hostname { get; set; }
-        public string Directory { get; set; }
         public string UNCDirectory { get; set; }
         public DateTime CreationTime { get; set; }
         public DateTime LastWriteTime { get; set; }
@@ -28,7 +27,6 @@ namespace SMBeagle.FileDiscovery.Output
             Name = file.Name.ToLower();
             Host = file.ParentDirectory.Share.Host.Address;
             Extension = file.Extension.TrimStart('.').ToLower();
-            Directory = file.ParentDirectory.Path.ToLower();
             UNCDirectory = file.ParentDirectory.UNCPath.ToLower();
             CreationTime = file.CreationTime;
             LastWriteTime = file.LastWriteTime;

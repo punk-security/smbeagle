@@ -15,7 +15,11 @@ namespace SMBeagle.FileDiscovery
         {
             get
             {
-                return $"{Share.uncPath}{Path}";
+                // Windows enum needs UNC Paths as Path but Cross-platform doesnt.
+                if (Path.StartsWith(@"\\"))
+                    return Path;
+                else
+                    return $"{Share.uncPath}{Path}";
             }
         }
         //todo: replace Base and Type with direct copy from parent then drop the ref
