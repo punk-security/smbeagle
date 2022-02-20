@@ -25,16 +25,11 @@ namespace SMBeagle
 
         static void Run(Options opts)
         {
+
             if (!opts.Quiet)
                 OutputHelper.ConsoleWriteLogo();
             else
                 Console.WriteLine("SMBeagle by PunkSecurity [punksecurity.co.uk]");
-
-            if (opts.ElasticsearchHost != null)
-                OutputHelper.EnableElasticsearchLogging($"http://{opts.ElasticsearchHost}:9200/");
-
-            if (opts.CsvFile != null)
-                OutputHelper.EnableCSVLogging(opts.CsvFile);
 
             if (! RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -63,6 +58,18 @@ namespace SMBeagle
                 // The library we use hangs when scanning ourselves
                 opts.DisableLocalShares = true;
             }
+
+            String username = "";
+            if (opts.Username != null)
+                username = opts.Username;
+            if (opts.Domain != "")
+                username = $"{opts.Domain}\\{username}";
+
+            if (opts.ElasticsearchHost != null)
+                OutputHelper.EnableElasticsearchLogging($"http://{opts.ElasticsearchHost}:9200/", username);
+
+            if (opts.CsvFile != null)
+                OutputHelper.EnableCSVLogging(opts.CsvFile, username);
 
             NetworkFinder
                 nf = new();

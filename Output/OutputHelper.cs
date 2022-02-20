@@ -69,6 +69,15 @@ namespace SMBeagle.Output
         public static void EnableCSVLogging(string path, string username="")
         {
             SetUsernameAndHostname(username);
+            try
+            {
+                System.IO.File.WriteAllText(path, string.Empty);
+            }
+            catch
+            {
+                Console.WriteLine("ERROR: Could not create CSV file");
+                Environment.Exit(1);
+            }
             CsvLogger = new LoggerConfiguration()
                 .WriteTo.File(new CSVFormatter(), path)
                 .CreateLogger();
