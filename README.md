@@ -62,6 +62,13 @@ A good starting point is to enable fast mode and output to csv, but this CSV cou
 ./SMBeagle.exe -c out.csv -f
 ```
 
+### Public IP scanning
+
+The scanning of discovered public hosts and networks is disabled by default as SMBeagle discovers networks from netstat which 
+includes all current connections such as web browser sessions etc.
+
+To scan a public network, declare it manually with something like `-n 1.0.0.1/32` or `-n 1.0.0.0/24`
+
 ### Full Usage
 
 ```

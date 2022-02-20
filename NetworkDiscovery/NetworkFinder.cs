@@ -12,9 +12,18 @@ namespace SMBeagle.NetworkDiscovery
         public List<Network> PrivateNetworks { 
             get 
             {
-                return _Networks.Where(item => item.IsPrivate == true).ToList();
+                return _Networks.Where(item => item.IsPrivate).ToList();
             }
-}
+        }
+
+        public List<Network> PublicNetworks
+        {
+            get
+            {
+                return _Networks.Where(item => !item.IsPrivate).ToList();
+            }
+        }
+
         List<Network> _Networks = new List<Network>();
         List<string> _Addresses = new List<string>();
         List<string> _LocalAddresses = new List<string>();
@@ -24,6 +33,13 @@ namespace SMBeagle.NetworkDiscovery
             get
             {
                 return _Addresses.Where(item => Network.IsPrivateAddress(item) == true).ToList();
+            }
+        }
+        public List<string> PublicAddresses
+        {
+            get
+            {
+                return _Addresses.Where(item => Network.IsPrivateAddress(item) == false).ToList();
             }
         }
         public List<string> Addresses { get { return _Addresses; } }
@@ -56,14 +72,11 @@ namespace SMBeagle.NetworkDiscovery
         public void AddNetwork(Network network)
         {
             if (network.Value == "::/64" || network.Address == "127.0.0.0")
-                return;
-            // return without storing if this network already exists
+                return; // return without storing if this network already exists
             if (_Networks.Any(item => item.Value == network.Value))
-                return;
-            // return without storing if network is child of another already tracked
+                return; // return without storing if network is child of another already tracked
             if (_Networks.Any(item => item.ContainsNetwork(network)))
-                return;
-            // remove childnet if this network fully contains it
+                return; // remove childnet if this network fully contains it
             // todo: are there edge cases where we want to keep child nets?
             List<Network> iter = new List<Network>(_Networks);
             foreach ( Network net in iter)

@@ -45,7 +45,7 @@ namespace SMBeagle.FileDiscovery
         public FileFinder(List<string> paths, bool enumerateLocalDrives = true, bool getPermissionsForSingleFileInDir = true, string username="", bool enumerateAcls = true, bool quiet = false, bool verbose = false)
         {
 
-            IntPtr pClientContext = IntPtr.Zero;
+            pClientContext = IntPtr.Zero;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 #pragma warning disable CA1416
@@ -71,7 +71,7 @@ namespace SMBeagle.FileDiscovery
                 _directories.AddRange(GetLocalDriveDirectories());
 
             if (!quiet)
-                OutputHelper.WriteLine($"5a. Enumerating all subdirectories for known paths");
+                OutputHelper.WriteLine($"6a. Enumerating all subdirectories for known paths");
             foreach (Directory dir in _directories)
             {
                 if (verbose)
@@ -80,12 +80,12 @@ namespace SMBeagle.FileDiscovery
             }
 
             if(!quiet)
-                OutputHelper.WriteLine($"5b. Splitting large directories to optimise caching and to batch output");
+                OutputHelper.WriteLine($"6b. Splitting large directories to optimise caching and to batch output");
 
             SplitLargeDirectories();
 
             if (!quiet)
-                OutputHelper.WriteLine($"5c. Enumerating directories");
+                OutputHelper.WriteLine($"6c. Enumerating directories");
 
             foreach (Directory dir in _directories)
             {
