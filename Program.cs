@@ -8,6 +8,7 @@ using CommandLine.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace SMBeagle
 {
@@ -35,7 +36,22 @@ namespace SMBeagle
             if (opts.CsvFile != null)
                 OutputHelper.EnableCSVLogging(opts.CsvFile);
 
-            NetworkFinder 
+            if (! RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // TODO: should we have an enum for exit codes?
+                if (opts.Username == null|| opts.Password == null)
+                {
+                    OutputHelper.WriteLine("ERROR: Username and Password required on none Windows platforms");
+                    Environment.Exit(1);
+                }
+                if (opts.EnumerateLocalDrives)
+                {
+                    OutputHelper.WriteLine("ERROR: We cannot enumrate local drives on None Windows platforms");
+                    Environment.Exit(1);
+                }
+            }
+
+            NetworkFinder
                 nf = new();
 
             // Discover networks automagically
@@ -306,6 +322,12 @@ namespace SMBeagle
 
             [Option('A', "dont-enumerate-acls", Required = false, Default = false, HelpText = "Skip enumeration of file ACLs")]
             public bool DontEnumerateAcls { get; set; }
+
+            [Option('u', "username", Required = false, HelpText = "Username for connecting to SMB - mandatory on linux")]
+            public string Username { get; set; }
+
+            [Option('p', "password", Required = false, HelpText = "Password for connecting to SMB - mandatory on linux")]
+            public string Password { get; set; }
 
             [Usage(ApplicationAlias = "SMBeagle")]
             public static IEnumerable<Example> Examples
