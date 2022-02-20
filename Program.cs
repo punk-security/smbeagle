@@ -51,6 +51,19 @@ namespace SMBeagle
                 }
             }
 
+            if (opts.Username == null ^ opts.Password == null)
+            {
+                OutputHelper.WriteLine("ERROR: We need a username and password, not just one");
+                Environment.Exit(1);
+            }
+            bool crossPlatform = false;
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || opts.Username != null )
+            {
+                crossPlatform = true;
+                // The library we use hangs when scanning ourselves
+                opts.DisableLocalShares = true;
+            }
+
             NetworkFinder
                 nf = new();
 
@@ -182,7 +195,7 @@ namespace SMBeagle
 
             if (hf.ReachableHosts.Count == 0)
             {
-                OutputHelper.WriteLine("There are no hosts with accessible SMB shares...");
+                OutputHelper.WriteLine("There are no hosts with accessible SMB services...");
                 Environment.Exit(0);
             }
 
@@ -195,9 +208,21 @@ namespace SMBeagle
 
             OutputHelper.WriteLine("5. Probing SMB services for accessible shares...");
 
-            // Enumerate shares
-            foreach (Host h in hf.ReachableHosts)
-                ShareFinder.DiscoverDeviceShares(h);
+            if (crossPlatform)
+            {
+                // We are none windows or have alternate creds
+                foreach (Host h in hf.ReachableHosts)
+                {
+                    if (CrossPlatformShareFinder.GetClient(h, opts.Domain, opts.Username, opts.Password))
+                        CrossPlatformShareFinder.DiscoverDeviceShares(h);
+                }
+            }
+            else
+            {
+                // Enumerate shares
+                foreach (Host h in hf.ReachableHosts)
+                    WindowsShareFinder.DiscoverDeviceShares(h);
+            }
 
             OutputHelper.WriteLine($"probing is complete and we have {hf.HostsWithShares.Count} hosts with accessible shares", 1);
 
@@ -215,15 +240,15 @@ namespace SMBeagle
             }
             
             // Build list of uncPaths from up hosts
-            List<string> uncPaths = new();
-                foreach (Host h in hf.ReachableHosts.Where(item => item.ShareCount > 0))
-                    uncPaths.AddRange(h.UNCPaths);
+            List<Share> shares = new();
+                foreach (Host h in hf.HostsWithShares)
+                    shares.AddRange(h.Shares);
 
             if (opts.Verbose)
             {
                 OutputHelper.WriteLine("accessible SMB shares:", 2);
-                foreach (string uncPath in uncPaths)
-                    OutputHelper.WriteLine(uncPath, 3);
+                foreach (Share share in shares)
+                    OutputHelper.WriteLine(share.uncPath, 3);
             }
 
             OutputHelper.WriteLine("6. Enumerating accessible shares, this can be slow...");
@@ -231,12 +256,12 @@ namespace SMBeagle
             // Find files on all the shares
             FileFinder
                 ff = new(
-                    paths: uncPaths, 
+                    shares: shares, 
                     getPermissionsForSingleFileInDir: opts.EnumerateOnlyASingleFilesAcl, 
-                    enumerateLocalDrives: opts.EnumerateLocalDrives, 
-                    username: "", 
+                    enumerateLocalDrives: (opts.EnumerateLocalDrives && RuntimeInformation.IsOSPlatform(OSPlatform.Windows)),
                     enumerateAcls: !opts.DontEnumerateAcls,
-                    verbose: opts.Verbose
+                    verbose: opts.Verbose,
+                    crossPlatform:crossPlatform
                     );
 
             OutputHelper.WriteLine("7. Completing the writes to CSV or elasticsearch (or both)");
@@ -322,6 +347,8 @@ namespace SMBeagle
 
             [Option('A', "dont-enumerate-acls", Required = false, Default = false, HelpText = "Skip enumeration of file ACLs")]
             public bool DontEnumerateAcls { get; set; }
+            [Option('d', "domain", Required = false, Default = "", HelpText = "Domain for connecting to SMB")]
+            public string Domain { get; set; }
 
             [Option('u', "username", Required = false, HelpText = "Username for connecting to SMB - mandatory on linux")]
             public string Username { get; set; }

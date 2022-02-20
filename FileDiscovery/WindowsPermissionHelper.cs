@@ -192,10 +192,9 @@ namespace SMBeagle.FileDiscovery
             SE_REGISTRY_WOW64_32KEY
         }
 
-        public static IntPtr GetUserSid(string username = "")
+        public static IntPtr GetUserSid()
         {
-            if (username == "")
-                username = WindowsIdentity.GetCurrent().Name;
+            string username = WindowsIdentity.GetCurrent().Name;
             NTAccount ac = new NTAccount(username);
             SecurityIdentifier sid = (SecurityIdentifier)ac.Translate(typeof(SecurityIdentifier));
             byte[] bytes = new byte[sid.BinaryLength];
@@ -210,9 +209,9 @@ namespace SMBeagle.FileDiscovery
             return UserSid;
         }
 
-        public static IntPtr GetpClientContext(string username)
+        public static IntPtr GetpClientContext()
         {
-            IntPtr sid = WindowsPermissionHelper.GetUserSid(username);
+            IntPtr sid = WindowsPermissionHelper.GetUserSid();
             IntPtr hManager = IntPtr.Zero;
             AuthzInitializeResourceManager(1, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, null, out hManager);
             IntPtr pClientContext = IntPtr.Zero;
@@ -275,13 +274,29 @@ namespace SMBeagle.FileDiscovery
     }
 
 
-
+    public static ACL ResolvePermissionsSlow(string path)
+    {
+        ACL acl = new();
+        try
+        {
+            new FileStream(path, FileMode.Open, FileAccess.Read).Dispose();
+            acl.Readable = true;
+        }
+        catch { }
+        try
+        {
+            new FileStream(path, FileMode.Open, FileAccess.Write).Dispose();
+            acl.Writeable = true;
+        }
+        catch { }
+        return acl;
+    }
 
     static void FreePointerH(IntPtr pointer)
-        {
-            if (pointer != IntPtr.Zero)
-                Marshal.FreeHGlobal(pointer);
-        }
+    {
+        if (pointer != IntPtr.Zero)
+            Marshal.FreeHGlobal(pointer);
+    }
 
     static void FreePointerC(IntPtr pointer )
     {

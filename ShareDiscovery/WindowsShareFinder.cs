@@ -1,14 +1,12 @@
 ﻿using SMBeagle.HostDiscovery;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SMBeagle.ShareDiscovery
 {
-    class ShareFinder
+    class WindowsShareFinder
     {
         // https://github.com/mitchmoser/SharpShares/blob/master/SharpShares/Enums/Shares.cs
         [DllImport("Netapi32.dll", SetLastError = true)]
@@ -69,13 +67,13 @@ namespace SMBeagle.ShareDiscovery
 
         const uint MAX_PREFERRED_LENGTH = 0xFFFFFFFF;
 
-        public static List<SHARE_INFO_1> EnumNetShares(string address)
+        public static List<SHARE_INFO_1> EnumNetShares(Host host)
         {
             List<SHARE_INFO_1> ShareInfos = new List<SHARE_INFO_1>();
             int entriesread = 0, totalentries = 0, resume_handle = 0;
             int nStructSize = Marshal.SizeOf(typeof(SHARE_INFO_1));
             IntPtr bufPtr = IntPtr.Zero;
-            StringBuilder server = new StringBuilder(address);
+            StringBuilder server = new StringBuilder(host.Address);
             int ret = NetShareEnum(server, 1, ref bufPtr, MAX_PREFERRED_LENGTH, ref entriesread, ref totalentries, ref resume_handle);
             if (ret == (int)NetError.NERR_Success)
             {
@@ -91,46 +89,31 @@ namespace SMBeagle.ShareDiscovery
             return ShareInfos;
         }
 
-        public static List<Share> GetDeviceShares(string address)
-        {
-            List<SHARE_INFO_1> shareInfos = EnumNetShares(address);
-            List<Share> ret = new List<Share>();
-            foreach (SHARE_INFO_1 si in shareInfos)
-            {
-                Share share = ConvertShareInfoToShare(si);
-                if (share != null)
-                    ret.Add(share);
-            }
-            return ret;
-        }
-
         public static void DiscoverDeviceShares(Host host)
         {
-            List<SHARE_INFO_1> shareInfos = EnumNetShares(host.Address);
+            List<SHARE_INFO_1> shareInfos = EnumNetShares(host);
             List<Share> ret = new List<Share>();
             foreach (SHARE_INFO_1 si in shareInfos)
             {
-                Share share = ConvertShareInfoToShare(si);
+                Share share = ConvertShareInfoToShare(host, si);
                 if (share != null)
                     host.Shares.Add(share);
             }
         }
 
-        private static Share ConvertShareInfoToShare(SHARE_INFO_1 shareInfo)
+        private static Share ConvertShareInfoToShare(Host host, SHARE_INFO_1 shareInfo)
         {
             switch(shareInfo.shi1_type)
             {
                 case (uint)SHARE_TYPE.STYPE_CLUSTER_DFS:
-                    return new Share(shareInfo.shi1_netname, Enums.ShareTypeEnum.DFS_SHARE);
+                    return new Share(host, shareInfo.shi1_netname, Enums.ShareTypeEnum.DFS_SHARE);
                 case (uint)SHARE_TYPE.STYPE_CLUSTER_FS:
-                    return new Share(shareInfo.shi1_netname, Enums.ShareTypeEnum.CLUSTER_SHARE);
+                    return new Share(host, shareInfo.shi1_netname, Enums.ShareTypeEnum.CLUSTER_SHARE);
                 case (uint)SHARE_TYPE.STYPE_CLUSTER_SOFS:
-                    return new Share(shareInfo.shi1_netname, Enums.ShareTypeEnum.SCALE_OUT_CLUSTER_SHARE);
+                    return new Share(host, shareInfo.shi1_netname, Enums.ShareTypeEnum.SCALE_OUT_CLUSTER_SHARE);
                 default: 
-                    return new Share(shareInfo.shi1_netname, Enums.ShareTypeEnum.DISK);
+                    return new Share(host, shareInfo.shi1_netname, Enums.ShareTypeEnum.DISK);
             }
-
-
         }
     }
 }

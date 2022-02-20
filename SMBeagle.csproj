@@ -19,6 +19,7 @@
     <PackageReference Include="IPNetwork2" Version="2.5.318" />
     <PackageReference Include="Serilog" Version="2.10.0" />
     <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.4.1" />
+    <PackageReference Include="SMBLibrary" Version="1.4.8" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
   </ItemGroup>
 
