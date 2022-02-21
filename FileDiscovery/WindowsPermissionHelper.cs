@@ -259,14 +259,10 @@ namespace SMBeagle.FileDiscovery
                 if ((mask & ACCESS_MASK.FILE_WRITE_DATA) > 0)
                     acl.Writeable = true;
             }
-            //FreePointerC(pClientContext);
             FreePointerH(AccessReply);
             FreePointerH(reply.GrantedAccessMask);
             FreePointerH(reply.SaclEvaluationResults);
             FreePointerH(reply.Error);
-        ////FreePointerC(pSidOwner);
-        ////FreePointerC(pSidGroup);
-        ////FreePointerC(pDacl);
         FreePointerC(pSacl);
 
         FreePointerC(pSecurityDescriptor);
@@ -282,13 +278,19 @@ namespace SMBeagle.FileDiscovery
             new FileStream(path, FileMode.Open, FileAccess.Read).Dispose();
             acl.Readable = true;
         }
-        catch { }
+        catch 
+        {
+            // An error is expected if not readable
+        }
         try
         {
             new FileStream(path, FileMode.Open, FileAccess.Write).Dispose();
             acl.Writeable = true;
         }
-        catch { }
+        catch
+        {
+            // An error is expected if not writeable
+        }
         return acl;
     }
 

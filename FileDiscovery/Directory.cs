@@ -108,7 +108,7 @@ namespace SMBeagle.FileDiscovery
                     {
                         List<QueryDirectoryFileInformation> fileList;
                         //TODO: can we filter on just files
-                        status = fileStore.QueryDirectory(out fileList, directoryHandle, "*", FileInformationClass.FileDirectoryInformation);
+                        fileStore.QueryDirectory(out fileList, directoryHandle, "*", FileInformationClass.FileDirectoryInformation);
                         foreach (QueryDirectoryFileInformation f in fileList)
                         {
                             if (f.FileInformationClass == FileInformationClass.FileDirectoryInformation)
@@ -137,12 +137,15 @@ namespace SMBeagle.FileDiscovery
                                 }
                             }
                         }
-                        status = fileStore.CloseFile(directoryHandle);
+                        fileStore.CloseFile(directoryHandle);
                     }
-                    status = fileStore.Disconnect();
+                    fileStore.Disconnect();
                 }
             }
-            catch { }
+            catch 
+            {
+                //TODO: Implement better error handling here, one explosion should not wipe out the whole enumeration
+            }
         }
         public void Clear()
         {
@@ -175,7 +178,7 @@ namespace SMBeagle.FileDiscovery
                     {
                         List<QueryDirectoryFileInformation> fileList;
                         //TODO: can we filter on just files
-                        status = fileStore.QueryDirectory(out fileList, directoryHandle, "*", FileInformationClass.FileDirectoryInformation);
+                        fileStore.QueryDirectory(out fileList, directoryHandle, "*", FileInformationClass.FileDirectoryInformation);
                         foreach (QueryDirectoryFileInformation f in fileList)
                         {
                             if (f.FileInformationClass == FileInformationClass.FileDirectoryInformation)
@@ -191,12 +194,15 @@ namespace SMBeagle.FileDiscovery
                                 }
                             }
                         }
-                        status = fileStore.CloseFile(directoryHandle);
+                        fileStore.CloseFile(directoryHandle);
                     }
-                    status = fileStore.Disconnect();
+                    fileStore.Disconnect();
                 } 
             }
-            catch { }
+            catch 
+            {
+                //TODO: Implement better error handling here, one explosion should not wipe out the whole enumeration
+            }
         }
         public void FindDirectoriesRecursively(bool crossPlatform)
         {

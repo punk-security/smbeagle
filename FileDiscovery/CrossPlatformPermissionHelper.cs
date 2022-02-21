@@ -16,9 +16,7 @@ namespace SMBeagle.FileDiscovery
             NTStatus result = fileStore.CreateFile(out handle, out _, filePath, accessMask, FileAttributes.Normal, ShareAccess.None, CreateDisposition.FILE_OPEN, CreateOptions.FILE_NON_DIRECTORY_FILE | CreateOptions.FILE_SYNCHRONOUS_IO_ALERT, null);
             if (result == NTStatus.STATUS_SUCCESS)
                 fileStore.CloseFile(handle);
-            // NTStatus result = fileStore.CreateFile(out , out _, filePath, AccessMask.GENERIC_WRITE | AccessMask.DELETE | AccessMask.SYNCHRONIZE, FileAttributes.Normal, ShareAccess.None, CreateDisposition.FILE_OPEN, CreateOptions.FILE_NON_DIRECTORY_FILE | CreateOptions.FILE_SYNCHRONOUS_IO_ALERT, null);
             return result == NTStatus.STATUS_SUCCESS;
-            //return fileStore.CreateFile(out _, out _, filePath, accessMask, FileAttributes.Normal, ShareAccess.None, CreateDisposition.FILE_OPEN, CreateOptions.FILE_NON_DIRECTORY_FILE | CreateOptions.FILE_SYNCHRONOUS_IO_ALERT, null) == NTStatus.STATUS_SUCCESS;
         }
         public static ACL ResolvePermissions(File file)
         {

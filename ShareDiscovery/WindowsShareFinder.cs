@@ -92,7 +92,6 @@ namespace SMBeagle.ShareDiscovery
         public static void DiscoverDeviceShares(Host host)
         {
             List<SHARE_INFO_1> shareInfos = EnumNetShares(host);
-            List<Share> ret = new List<Share>();
             foreach (SHARE_INFO_1 si in shareInfos)
             {
                 Share share = ConvertShareInfoToShare(host, si);

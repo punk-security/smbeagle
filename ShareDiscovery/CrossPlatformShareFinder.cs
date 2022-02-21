@@ -4,11 +4,7 @@ using SMBLibrary;
 using SMBLibrary.Client;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SMBeagle.ShareDiscovery
 {
@@ -28,7 +24,6 @@ namespace SMBeagle.ShareDiscovery
             }
             return false;
         }
-        #nullable enable
         public static bool GetClient(Host host, string domain, string username, string password)
         {
             ISMBClient client;
@@ -48,7 +43,6 @@ namespace SMBeagle.ShareDiscovery
             }
             return false;
         }
-        #nullable disable
 
         private static List<String> GetDeviceShares(ISMBClient client)
         {
@@ -75,8 +69,7 @@ namespace SMBeagle.ShareDiscovery
             foreach (String s in shares)
             {
                 Share share = new Share(host, s, Enums.ShareTypeEnum.DISK);
-                if (share != null)
-                    host.Shares.Add(share);
+                host.Shares.Add(share);
             }
         }
     }
