@@ -129,8 +129,11 @@ namespace SMBeagle.Output
                 domainName = IPGlobalProperties.GetIPGlobalProperties().DomainName,
                 hostname = Dns.GetHostName();
 
-            if (domainName == "")
+            if (domainName == String.Empty)
                 domainName = "WORKGROUP";
+
+            if (domainName == "(none)")
+                domainName = "STANDALONE";
 
             return $"{hostname}.{domainName}";
         }
