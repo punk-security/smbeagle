@@ -1,4 +1,5 @@
 ﻿using SMBeagle.ShareDiscovery;
+using SMBLibrary.Client;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -12,16 +13,9 @@ namespace SMBeagle.HostDiscovery
         public bool SMBAvailable { get { return _SMBAvailable; } }
         private bool _SMBAvailable { get; set; }
         public List<Share> Shares { get; set; } = new();
-
-        public List<string> UNCPaths { 
-            get 
-            {
-                return Shares
-                        .Select(share => $@"\\{Address}\{share.Name}\")
-                        .ToList();
-            }
-        }
-
+        #nullable enable
+        public ISMBClient? Client { get; set; } = null;
+        #nullable disable
         public int ShareCount { get { return Shares.Count; } }
         public Host(string address)
         {
@@ -54,5 +48,7 @@ namespace SMBeagle.HostDiscovery
         {
             return Address;
         }
+
+
     }
 }

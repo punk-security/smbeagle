@@ -17,7 +17,9 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
       - name: Build windows x64
-        run: dotnet publish -c Release --self-contained -r win-x64 -o packages\windows\x64 -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false
+        run: dotnet publish -c Release --self-contained -r win-x64 -o packages\windows\x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
+      - name: Build linux x64
+        run: dotnet publish -c Release --self-contained -r linux-x64 -o packages\linux\x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
       - name: version
         run: echo ::set-output name=version::$(echo $GITHUB_REF | cut -d / -f 3)
         shell: bash
@@ -41,7 +43,7 @@ jobs:
           tag_name: ${{ github.ref }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
-      - name: Create archive
+      - name: Create Windows archive
         run: Compress-Archive -DestinationPath .\win_x64.zip -Path .\packages\windows\x64
       - name: Upload Win x64 binary
         uses: actions/upload-release-asset@v1
@@ -51,4 +53,15 @@ jobs:
          upload_url: ${{ steps.create_release.outputs.upload_url }}
          asset_path: .\win_x64.zip
          asset_name: smbeagle_${{ steps.version.outputs.version }}_win_x64.zip
+         asset_content_type: application/zip
+      - name: Create Linux archive
+        run: Compress-Archive -DestinationPath .\linux_x64.zip -Path .\packages\linux\x64
+      - name: Upload Linux x64 binary
+        uses: actions/upload-release-asset@v1
+        env:
+         GITHUB_TOKEN: ${{ github.token }}
+        with:
+         upload_url: ${{ steps.create_release.outputs.upload_url }}
+         asset_path: .\linux_x64.zip
+         asset_name: smbeagle_${{ steps.version.outputs.version }}_linux_x64.zip
          asset_content_type: application/zip

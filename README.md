@@ -16,6 +16,8 @@
 =======
 # SMBeagle
 
+*** We now run on Linux!!!! ***
+
 ## Intro
 
 SMBeagle is an (SMB) fileshare auditing tool that hunts out all files it can see in the network 
@@ -107,8 +109,14 @@ Do not enumerate ACLs (FASTER):
                                      for SMB Hosts
   -A, --dont-enumerate-acls          (Default: false) Skip enumeration of file
                                      ACLs
+  -d, --domain                       (Default: ) Domain for connecting to SMB
+  -u, --username                     Username for connecting to SMB - mandatory
+                                     on linux
+  -p, --password                     Password for connecting to SMB - mandatory
+                                     on linux
   --help                             Display this help screen.
   --version                          Display version information.
+
 ```
 
 ## Architecture
@@ -117,7 +125,3 @@ SMBeagle does a lot of work, which is broken down into loosely coupled modules w
 This keeps the design simple and allows us to extend each module easily.
 
 ![Schematic](Docs/schematic.png)
-
-We only run on Windows at the moment, even though we are using dotnetcore which is cross-platform.  SMB support is relatively
- weak on Linux and we take advantage of a lot of Win32 APIs on the SMB side.  We do have an open issue for this though so 
- please lend your support if you want to see it.

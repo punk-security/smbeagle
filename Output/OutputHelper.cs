@@ -69,6 +69,15 @@ namespace SMBeagle.Output
         public static void EnableCSVLogging(string path, string username="")
         {
             SetUsernameAndHostname(username);
+            try
+            {
+                System.IO.File.WriteAllText(path, string.Empty);
+            }
+            catch
+            {
+                Console.WriteLine("ERROR: Could not create CSV file");
+                Environment.Exit(1);
+            }
             CsvLogger = new LoggerConfiguration()
                 .WriteTo.File(new CSVFormatter(), path)
                 .CreateLogger();
@@ -120,8 +129,11 @@ namespace SMBeagle.Output
                 domainName = IPGlobalProperties.GetIPGlobalProperties().DomainName,
                 hostname = Dns.GetHostName();
 
-            if (domainName == "")
+            if (domainName == String.Empty)
                 domainName = "WORKGROUP";
+
+            if (domainName == "(none)")
+                domainName = "STANDALONE";
 
             return $"{hostname}.{domainName}";
         }
@@ -156,30 +168,16 @@ namespace SMBeagle.Output
 
         public void Format(LogEvent logEvent, TextWriter output)
         {
-            try // We have issues if the file has a comma in it!  -to revisit
+            try
             {
-                Dictionary<string,string> 
-                    dict = logEvent.Properties["File"].ToString()
-                            .Substring("FileOutput {".Length)
-                            .Trim('}')
-                            .Split(",")
-                            .Select(s => s.Split(":", 2))
-                            .ToDictionary(
-                                p => p[0].Trim().Trim('"'),
-                                p => p[1].Trim().Trim('"')
-                            );
-
-                string[]
-                    keys = dict.Keys.ToArray(),
-                    values = dict.Values.ToArray();
-
+                var properties = ((Serilog.Events.StructureValue)logEvent.Properties["File"]).Properties;
                 if (!_headersWritten)
                 {
-                    for(int i=0; i<keys.Length; i++)
+                    for(int i=0; i<properties.Count; i++)
                     {
-                        output.Write(keys[i]);
+                        output.Write(properties[i].Name);
 
-                        if (i < keys.Length - 1)
+                        if (i < properties.Count - 1)
                             output.Write(CSV_SEPERATOR);
                     }
 
@@ -187,11 +185,11 @@ namespace SMBeagle.Output
                     _headersWritten = true;
                 }
 
-                for (int i = 0; i < values.Length; i++)
+                for (int i = 0; i < properties.Count; i++)
                 {
-                    output.Write(values[i]);
+                    output.Write(properties[i].Value);
 
-                    if (i < values.Length - 1)
+                    if (i < properties.Count - 1)
                         output.Write(CSV_SEPERATOR);
                 }
 

@@ -10,10 +10,11 @@ namespace SMBeagle.FileDiscovery.Output
     class FileOutput : IOutputPayload
     {
         public string Name { get; set; }
+        public string Host { get; set; }
         public string Extension { get; set; }
         public string Username { get; set; }
         public string Hostname { get; set; }
-        public string Directory { get; set; }
+        public string UNCDirectory { get; set; }
         public DateTime CreationTime { get; set; }
         public DateTime LastWriteTime { get; set; }
         public bool Readable { get; set; }
@@ -24,15 +25,16 @@ namespace SMBeagle.FileDiscovery.Output
         public FileOutput(File file)
         {
             Name = file.Name.ToLower();
+            Host = file.ParentDirectory.Share.Host.Address;
             Extension = file.Extension.TrimStart('.').ToLower();
-            Directory = file.ParentDirectory.Path.ToLower();
+            UNCDirectory = file.ParentDirectory.UNCPath.ToLower();
             CreationTime = file.CreationTime;
             LastWriteTime = file.LastWriteTime;
             Readable = file.Readable;
             Writeable = file.Writeable;
             Deletable = file.Deletable;
             DirectoryType = file.ParentDirectory.Base.DirectoryType;
-            Base = file.ParentDirectory.Base.Path;
+            Base = file.ParentDirectory.Share.uncPath;
         }
     }
 }

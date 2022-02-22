@@ -1,4 +1,5 @@
 ﻿using SMBeagle.Output;
+using SMBeagle.ShareDiscovery;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,14 +43,13 @@ namespace SMBeagle.FileDiscovery
             }
         }
 
-        public FileFinder(List<string> paths, bool enumerateLocalDrives = true, bool getPermissionsForSingleFileInDir = true, string username="", bool enumerateAcls = true, bool quiet = false, bool verbose = false)
+        public FileFinder(List<Share> shares, bool enumerateLocalDrives = true, bool getPermissionsForSingleFileInDir = true, bool enumerateAcls = true, bool quiet = false, bool verbose = false, bool crossPlatform = false)
         {
-
             pClientContext = IntPtr.Zero;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (! crossPlatform)
             {
                 #pragma warning disable CA1416
-                pClientContext = WindowsPermissionHelper.GetpClientContext(username);
+                pClientContext = WindowsPermissionHelper.GetpClientContext();
                 if (enumerateAcls & pClientContext == IntPtr.Zero & !quiet)
                 {
                     OutputHelper.WriteLine("!! Error querying user context.  Failing back to a slower ACL identifier.  ", 1);
@@ -60,23 +60,23 @@ namespace SMBeagle.FileDiscovery
                 #pragma warning restore CA1416
             }
 
-            paths = new HashSet<string>(paths.ConvertAll(d => d.ToLower())).ToList();
-
-            foreach (string path in paths)
+            foreach (Share share in shares) //TODO: dedup share by host and name
             {
-                _directories.Add(new Directory(path) { DirectoryType = Enums.DirectoryTypeEnum.SMB });
+                _directories.Add(new Directory(path: "", share:share) { DirectoryType = Enums.DirectoryTypeEnum.SMB });
             }
 
+            /* TODO: Reimplement in future
             if (enumerateLocalDrives)
                 _directories.AddRange(GetLocalDriveDirectories());
+            */
 
             if (!quiet)
                 OutputHelper.WriteLine($"6a. Enumerating all subdirectories for known paths");
             foreach (Directory dir in _directories)
             {
                 if (verbose)
-                    OutputHelper.WriteLine($"Enumerating all subdirectories for '{dir.Path}'",1);
-                dir.FindDirectoriesRecursively();
+                    OutputHelper.WriteLine($"Enumerating all subdirectories for '{dir.UNCPath}'",1);
+                dir.FindDirectoriesRecursively(crossPlatform: crossPlatform);
             }
 
             if(!quiet)
@@ -85,23 +85,23 @@ namespace SMBeagle.FileDiscovery
             SplitLargeDirectories();
 
             if (!quiet)
-                OutputHelper.WriteLine($"6c. Enumerating directories");
+                OutputHelper.WriteLine($"6c. Enumerating files in directories");
 
             foreach (Directory dir in _directories)
             {
-                OutputHelper.WriteLine($"\renumerating '{dir.Path}'                                          ", 1, false);
+                OutputHelper.WriteLine($"\renumerating files in '{dir.UNCPath}'                                          ", 1, false);
                 // TODO: pass in the ignored extensions from the commandline
-                dir.FindFilesRecursively(extensionsToIgnore: new List<string>() { ".dll",".manifest",".cat" });
+                dir.FindFilesRecursively(crossPlatform: crossPlatform, extensionsToIgnore: new List<string>() { ".dll",".manifest",".cat" });
                 if (verbose)
-                    OutputHelper.WriteLine($"\rFound {dir.ChildDirectories.Count} child directories and {dir.RecursiveFiles.Count} files in '{dir.Path}'",2);
+                    OutputHelper.WriteLine($"\rFound {dir.ChildDirectories.Count} child directories and {dir.RecursiveFiles.Count} files in '{dir.UNCPath}'",2);
                 
                 foreach (File file in dir.RecursiveFiles)
                 {
-                    if (FilesSentForOutput.Add(file.FullName.ToLower())) // returns True if not already present
+                    if (FilesSentForOutput.Add($"{dir.Share.uncPath}{file.FullName}".ToLower())) // returns True if not already present
                     {
                         // Cache fullnames and dont send a dupe
                         if (enumerateAcls)
-                            FetchFilePermission(file, getPermissionsForSingleFileInDir);
+                            FetchFilePermission(file, crossPlatform, getPermissionsForSingleFileInDir);
 
                         OutputHelper.AddPayload(new Output.FileOutput(file), Enums.OutputtersEnum.File);
                     }
@@ -125,14 +125,17 @@ namespace SMBeagle.FileDiscovery
             };
         }
 
-        private List<Directory> GetLocalDriveDirectories()
+        //TODO: Reimplement at some point
+        /*private List<Directory> GetLocalDriveDirectories()
         {
+            // Create dummy sahre
+            Share dummyShare = new Share(new HostDiscovery.Host("localhost"), "", Enums.ShareTypeEnum.DISK);
             return DriveInfo
                 .GetDrives()
                 .Where(drive => drive.IsReady)
-                .Select(drive => new Directory(drive.Name) { DirectoryType = DriveInfoTypeToDirectoryTypeEnum(drive.DriveType) })
+                .Select(drive => new Directory(drive.Name, share: dummyShare) { DirectoryType = DriveInfoTypeToDirectoryTypeEnum(drive.DriveType) })
                 .ToList();
-        }
+        }*/
 
         private void SplitLargeDirectories(int maxChildCount = 20)
         {
@@ -151,24 +154,32 @@ namespace SMBeagle.FileDiscovery
             }
         }
 
-        private void FetchFilePermission(File file, bool useCache = true)
+        private void FetchFilePermission(File file, bool crossPlatform, bool useCache = true)
         {
             if (useCache && CacheACL.Keys.Contains(file.ParentDirectory.Path)) // If we should use cache and cache has a hit
                 file.SetPermissionsFromACL(CacheACL[file.ParentDirectory.Path]);
             else
             {
                 ACL permissions;
-                if (pClientContext != IntPtr.Zero)
-                    #pragma warning disable CA1416
-                    permissions = WindowsPermissionHelper.ResolvePermissions(file.FullName, pClientContext);
-                    #pragma warning restore CA1416
-                else
-                    permissions = PermissionHelper.ResolvePermissions(file.FullName);
+                if (!crossPlatform)
+                #pragma warning disable CA1416
+                {
+                    if (pClientContext != IntPtr.Zero)
+                        permissions = WindowsPermissionHelper.ResolvePermissions(file.FullName, pClientContext);
 
+                    else
+                        permissions = WindowsPermissionHelper.ResolvePermissionsSlow(file.FullName);
+                    
+                }
+                #pragma warning restore CA1416
+                else
+                {
+                    permissions = CrossPlatformPermissionHelper.ResolvePermissions(file);
+                }
                 file.SetPermissionsFromACL(permissions);
 
-                if (useCache)
-                    CacheACL[file.ParentDirectory.Path] = permissions;
+            if (useCache)
+                CacheACL[file.ParentDirectory.Path] = permissions;
             }
         }
     }
