@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace SMBeagle
 {
@@ -216,20 +217,24 @@ namespace SMBeagle
 
             if (crossPlatform)
             {
-                // We are none windows or have alternate creds
-                foreach (Host h in hf.ReachableHosts)
+                foreach (Host host in hf.ReachableHosts)
                 {
-                    if (opts.Verbose)
-                        OutputHelper.WriteLine($"Discovering shares on '{h}'", 2);
-                    if (CrossPlatformShareFinder.GetClient(h, opts.Domain, opts.Username, opts.Password))
-                        CrossPlatformShareFinder.DiscoverDeviceShares(h);
+                    Thread t = new(() => CrossPlatformShareFinder.DiscoverDeviceShares(host, opts.Domain, opts.Username, opts.Password));
+                    t.Start();
                 }
+                // Wait for max scan time
+                Thread.Sleep(Host.PORT_MAX_WAIT_MS * 4);
             }
             else
             {
                 // Enumerate shares
-                foreach (Host h in hf.ReachableHosts)
-                    WindowsShareFinder.DiscoverDeviceShares(h);
+                foreach (Host host in hf.ReachableHosts)
+                {
+                    Thread t = new(() => WindowsShareFinder.DiscoverDeviceShares(host));
+                    t.Start();
+                }
+                // Wait for max scan time
+                Thread.Sleep(Host.PORT_MAX_WAIT_MS * 4);
             }
 
             OutputHelper.WriteLine($"probing is complete and we have {hf.HostsWithShares.Count} hosts with accessible shares", 1);

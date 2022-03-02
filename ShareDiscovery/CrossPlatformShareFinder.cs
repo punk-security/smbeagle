@@ -71,5 +71,11 @@ namespace SMBeagle.ShareDiscovery
                 host.Shares.Add(share);
             }
         }
+
+        public static void DiscoverDeviceShares(Host host, string domain, string username, string password)
+        {
+            if (GetClient(host, domain, username, password))
+                DiscoverDeviceShares(host);
+        }
     }
 }
