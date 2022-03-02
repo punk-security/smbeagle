@@ -52,9 +52,8 @@ namespace SMBeagle.ShareDiscovery
                 return shares;
             else
             {
-                OutputHelper.WriteLine("Could not list shares from device");
-                //TODO: Output code NTStatus
-                return shares;
+                OutputHelper.WriteLine($"Could not list shares from device - ERROR CODE: '{ NTStatus.STATUS_SUCCESS }'");
+                return new List<String>();
             }
         }
 
