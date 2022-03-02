@@ -220,6 +220,8 @@ namespace SMBeagle
                 // We are none windows or have alternate creds
                 foreach (Host h in hf.ReachableHosts)
                 {
+                    if (opts.Verbose)
+                        OutputHelper.WriteLine($"Discovering shares on '{h}'", 2);
                     if (CrossPlatformShareFinder.GetClient(h, opts.Domain, opts.Username, opts.Password))
                         CrossPlatformShareFinder.DiscoverDeviceShares(h);
                 }
