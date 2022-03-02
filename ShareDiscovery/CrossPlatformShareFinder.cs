@@ -52,7 +52,7 @@ namespace SMBeagle.ShareDiscovery
                 return shares;
             else
             {
-                OutputHelper.WriteLine($"Could not list shares from device - ERROR CODE: '{ NTStatus.STATUS_SUCCESS }' for host '{host}'");
+                OutputHelper.WriteLine($"Could not list shares from device - ERROR CODE: '{ returnCode }' for host '{host}'");
                 return new List<String>();
             }
         }
