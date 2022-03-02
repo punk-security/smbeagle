@@ -126,11 +126,6 @@ namespace SMBeagle
                     .Where(item => !opts.ExcludedNetworks.Contains(item.ToString()))
                     .ToList();
 
-                if (opts.DisableLocalShares)
-                    filteredAddresses.AddRange(nf.LocalAddresses);
-
-                filteredAddresses.AddRange(opts.ExcludedHosts.ToList());
-
                 OutputHelper.WriteLine($"filtered and have {networks.Count} private networks to scan and {filteredAddresses.Count} private addresses to exclude", 1);
 
                 if (!opts.Quiet)
@@ -156,6 +151,10 @@ namespace SMBeagle
                 OutputHelper.WriteLine("2. Skipping filtering as network discovery disabled...");
             }
 
+            if (opts.DisableLocalShares)
+                filteredAddresses.AddRange(nf.LocalAddresses);
+
+            filteredAddresses.AddRange(opts.ExcludedHosts.ToList());
 
             List<string> addresses = new();
 
