@@ -44,15 +44,15 @@ namespace SMBeagle.ShareDiscovery
             return false;
         }
 
-        private static List<String> GetDeviceShares(ISMBClient client)
+        private static List<String> GetDeviceShares(Host host)
         {
             NTStatus returnCode;
-            List<string> shares = client.ListShares(out returnCode);
+            List<string> shares = host.Client.ListShares(out returnCode);
             if (returnCode == NTStatus.STATUS_SUCCESS)
                 return shares;
             else
             {
-                OutputHelper.WriteLine($"Could not list shares from device - ERROR CODE: '{ NTStatus.STATUS_SUCCESS }'");
+                OutputHelper.WriteLine($"Could not list shares from device - ERROR CODE: '{ NTStatus.STATUS_SUCCESS }' for host '{host}'");
                 return new List<String>();
             }
         }
@@ -61,10 +61,10 @@ namespace SMBeagle.ShareDiscovery
         {
             if (host.Client == null)
             {
-                OutputHelper.WriteLine("Error: No SMBClient connection established for this host");
+                OutputHelper.WriteLine($"Error: No SMBClient connection established for this host '{host}'");
                 return;
             }
-            List<string> shares = GetDeviceShares(host.Client);
+            List<string> shares = GetDeviceShares(host);
             foreach (String s in shares)
             {
                 Share share = new Share(host, s, Enums.ShareTypeEnum.DISK);
