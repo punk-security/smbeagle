@@ -16,7 +16,7 @@
 =======
 # SMBeagle
 
-*** We now run on Linux!!!! ***
+*** We now run on Linux!!! ***
 
 ## Intro
 
