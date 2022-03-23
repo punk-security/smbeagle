@@ -24,6 +24,8 @@ jobs:
       run: dotnet publish -c Release --self-contained -r win-x64 -o packages\windows\x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
     - name: Build linux x64
       run: dotnet publish -c Release --self-contained -r linux-x64 -o packages\linux\x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
+    - name: Build linux ARM
+      run: dotnet publish -c Release --self-contained -r linux-arm -o packages\linux\arm64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
     - name: Install signing tool
       run: dotnet tool install --global AzureSignTool
     - name: Digitally sign executable
@@ -43,3 +45,8 @@ jobs:
       with:
         name: linux-x64
         path: packages\linux/x64\*
+    - name: Upload linux ARM
+      uses: actions/upload-artifact@v2
+      with:
+        name: linux-arm
+        path: packages\linux/arm\*
