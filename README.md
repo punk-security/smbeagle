@@ -79,7 +79,6 @@ Pull the image from dockerhub:
 
 Run SMBeagle e.g.: `docker run -v "./output:/tmp/output" punksecurity/smbeagle -c /tmp/output/results.csv`
 
-
 ### Full Usage
 
 ```
