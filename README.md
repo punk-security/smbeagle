@@ -71,13 +71,22 @@ includes all current connections such as web browser sessions etc.
 
 To scan a public network, declare it manually with something like `-n 1.0.0.1/32` or `-n 1.0.0.0/24`
 
+### Docker usage
+Punk security provides a linux docker image of SMBeagle.
+
+Pull the image from dockerhub:
+`docker pull punksecurity/smbeagle:latest`
+
+Run SMBeagle e.g.: `docker run -v "./output:/tmp/output" punksecurity/smbeagle -c /tmp/output/results.csv`
+
+
 ### Full Usage
 
 ```
 USAGE:
 Output to a CSV file:
   SMBeagle -c out.csv
-Output to elasticsearch (Preffered):
+Output to elasticsearch (Preferred):
   SMBeagle -e 127.0.0.1
 Output to elasticsearch and CSV:
   SMBeagle -c out.csv -e 127.0.0.1
