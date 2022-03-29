@@ -68,7 +68,7 @@ jobs:
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
       - name: Run Buildx
         run: |
-          docker buildx build \
+          docker buildx build . \
             --push \
             --progress=plain \
             -t docker.io/punksecurity/smbeagle:beta \
