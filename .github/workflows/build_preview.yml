@@ -71,5 +71,5 @@ jobs:
           docker buildx build \
             --push \
             --progress=plain \
-            -t docker.io/punksecurity/smbeagle \
+            -t docker.io/punksecurity/smbeagle:beta \
             --platform linux/amd64,linux/arm64
