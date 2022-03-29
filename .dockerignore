@@ -1,0 +1,11 @@
+﻿.idea
+.github
+.git
+.gitignore
+.gitattributes
+bin
+obj
+Docs
+Dockerfile
+LICENSE
+README.md
