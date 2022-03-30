@@ -35,7 +35,7 @@ jobs:
           docker buildx build . \
             --push \
             --progress=plain \
-            --tag docker.io/punksecurity/smbeagle:${{ steps.get_version.outputs.VERSION }} \
+            --tag docker.io/punksecurity/smbeagle:${{ steps.version.outputs.version }} \
             --tag docker.io/punksecurity/smbeagle:latest \
             --platform linux/amd64,linux/arm64
 
