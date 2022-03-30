@@ -22,8 +22,10 @@ jobs:
       - name: Run Buildx
         run: |
           docker buildx build . \
-            --local \
+            --push \
             --progress=plain \
+            --tag docker.io/punksecurity/smbeagle:${{ steps.get_version.outputs.VERSION }} \
+            --tag docker.io/punksecurity/smbeagle:latest \
             --platform linux/amd64,linux/arm64
 
   build:
