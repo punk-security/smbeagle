@@ -9,7 +9,42 @@ on:
       - reopened
 
 jobs:
-  build:
+  build_linux:
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build linux x64
+        run: dotnet publish -c Release --self-contained -r linux-x64 -o packages/linux/amd64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
+      - name: Build linux arm
+        run: dotnet publish -c Release --self-contained -r linux-arm64 -o packages/linux/arm64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Run Buildx
+        run: |
+          docker buildx build . \
+            --progress=plain \
+            --platform linux/amd64,linux/arm64
+      - name: Upload linux x64
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-x64
+          path: packages/linux/amd64/*
+      - name: Upload linux ARM
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-arm
+          path: packages/linux/arm64/*
+  build_windows:
     runs-on: windows-2019
 
     steps:
@@ -22,8 +57,6 @@ jobs:
       run: dotnet restore
     - name: Build windows x64
       run: dotnet publish -c Release --self-contained -r win-x64 -o packages\windows\x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
-    - name: Build linux x64
-      run: dotnet publish -c Release --self-contained -r linux-x64 -o packages\linux\x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
     - name: Install signing tool
       run: dotnet tool install --global AzureSignTool
     - name: Digitally sign executable
@@ -38,8 +71,6 @@ jobs:
       with:
         name: windows-x64
         path: packages\windows/x64\*
-    - name: Upload linux x64
-      uses: actions/upload-artifact@v2
-      with:
-        name: linux-x64
-        path: packages\linux/x64\*
+
+  
+
