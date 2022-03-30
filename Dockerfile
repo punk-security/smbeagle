@@ -4,4 +4,4 @@ COPY packages/linux/${TARGETARCH}/SMBeagle /bin/smbeagle
 
 RUN chmod +x /bin/smbeagle
 
-ENTRYPOINT ["smbeagle"]
+ENTRYPOINT ["smbeagle", "-D"]

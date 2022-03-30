@@ -74,10 +74,9 @@ To scan a public network, declare it manually with something like `-n 1.0.0.1/32
 ### Docker usage
 Punk security provides a linux docker image of SMBeagle.
 
-Pull the image from dockerhub:
-`docker pull punksecurity/smbeagle:latest`
-
-Run SMBeagle e.g.: `docker run -v "./output:/tmp/output" punksecurity/smbeagle -c /tmp/output/results.csv`
+Run SMBeagle: `docker run -v "./output:/tmp/output" punksecurity/smbeagle -c /tmp/output/results.csv -n 10.10.10.0/24`
+Note that network discovery is disabled when running in docker, so make sure you pass the ranges that
+you wish to scan with the `-n` command line switch.
 
 ### Full Usage
 
