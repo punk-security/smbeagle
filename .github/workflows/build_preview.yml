@@ -44,7 +44,7 @@ jobs:
         with:
           name: linux-arm
           path: packages/linux/arm64/*
-  build:
+  build_windows:
     runs-on: windows-2019
 
     steps:
