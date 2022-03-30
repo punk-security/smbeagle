@@ -1,6 +1,6 @@
 ﻿FROM debian
 ARG TARGETARCH
-COPY packages/linux/$TARGETARCH /bin/smbeagle
+COPY packages/linux/${TARGETARCH}/SMBeagle /bin/smbeagle
 
 RUN chmod +x /bin/smbeagle
 

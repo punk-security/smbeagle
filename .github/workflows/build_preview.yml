@@ -22,8 +22,8 @@ jobs:
         run: dotnet restore
       - name: Build linux x64
         run: dotnet publish -c Release --self-contained -r linux-x64 -o packages\linux\amd64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
-      - name: Build linux ARM
-        run: dotnet publish -c Release --self-contained -r linux-arm -o packages\linux\arm -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
+      - name: Build linux arm
+        run: dotnet publish -c Release --self-contained -r linux-arm64 -o packages\linux\arm64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
