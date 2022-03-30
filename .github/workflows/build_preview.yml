@@ -9,6 +9,53 @@ on:
       - reopened
 
 jobs:
+  build_linux:
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build linux x64
+        run: dotnet publish -c Release --self-contained -r linux-x64 -o packages\linux\amd64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
+      - name: Build linux ARM
+        run: dotnet publish -c Release --self-contained -r linux-arm -o packages\linux\arm -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          # TODO: replace username with action variable
+          username: punksecurity
+          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+      - name: version
+        run: echo ::set-output name=version::$(echo $GITHUB_REF | cut -d / -f 3)
+        id: version
+      - name: Run Buildx
+        run: |
+          docker buildx build . \
+            --push \
+            --progress=plain \
+            --tag docker.io/punksecurity/smbeagle:${{ steps.get_version.outputs.VERSION }} \
+            --tag docker.io/punksecurity/smbeagle:latest \
+            --platform linux/amd64,linux/arm64
+      - name: Upload linux x64
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-x64
+          path: packages/linux/x64/*
+      - name: Upload linux ARM
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-arm
+          path: packages/linux/arm/*
   build:
     runs-on: windows-2019
 
@@ -22,10 +69,6 @@ jobs:
       run: dotnet restore
     - name: Build windows x64
       run: dotnet publish -c Release --self-contained -r win-x64 -o packages\windows\x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
-    - name: Build linux x64
-      run: dotnet publish -c Release --self-contained -r linux-x64 -o packages\linux\x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
-    - name: Build linux ARM
-      run: dotnet publish -c Release --self-contained -r linux-arm -o packages\linux\arm -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false
     - name: Install signing tool
       run: dotnet tool install --global AzureSignTool
     - name: Digitally sign executable
@@ -40,15 +83,6 @@ jobs:
       with:
         name: windows-x64
         path: packages\windows/x64\*
-    - name: Upload linux x64
-      uses: actions/upload-artifact@v2
-      with:
-        name: linux-x64
-        path: packages\linux/x64\*
-    - name: Upload linux ARM
-      uses: actions/upload-artifact@v2
-      with:
-        name: linux-arm
-        path: packages\linux/arm\*
+
   
 
