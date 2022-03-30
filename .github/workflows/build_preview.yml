@@ -41,7 +41,7 @@ jobs:
       - name: Run Buildx
         run: |
           docker buildx build . \
-            --local \
+            --load \
             --progress=plain \
             --platform linux/amd64,linux/arm64
       - name: Upload linux x64
