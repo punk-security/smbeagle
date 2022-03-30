@@ -43,7 +43,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: linux-arm
-          path: packages/linux/arm/*
+          path: packages/linux/arm64/*
   build:
     runs-on: windows-2019
 
