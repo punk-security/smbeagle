@@ -55,7 +55,7 @@ jobs:
           docker buildx build . \
             --push \
             --progress=plain \
-            --tag docker.io/punksecurity/smbeagle:${{ steps.version.outputs.version }} \
+            --tag docker.io/punksecurity/smbeagle:${{ needs.create-release.outputs.release_version }} \
             --tag docker.io/punksecurity/smbeagle:latest \
             --platform linux/amd64,linux/arm64
       - name: Create Linux x64 archive
@@ -69,7 +69,7 @@ jobs:
         with:
          upload_url: ${{ needs.create-release.outputs.release_upload_url }}
          asset_path: .\linux_amd64.zip
-         asset_name: smbeagle_${{ steps.version.outputs.version }}_linux_amd64.zip
+         asset_name: smbeagle_${{ needs.create-release.outputs.release_version }}_linux_amd64.zip
          asset_content_type: application/zip
       - name: Upload Linux ARM binary
         uses: actions/upload-release-asset@v1
@@ -78,7 +78,7 @@ jobs:
         with:
           upload_url: ${{ needs.create-release.outputs.release_upload_url }}
           asset_path: .\linux_arm64.zip
-          asset_name: smbeagle_${{ steps.version.outputs.version }}_linux_arm64.zip
+          asset_name: smbeagle_${{ needs.create-release.outputs.release_version }}_linux_arm64.zip
           asset_content_type: application/zip
 
   build-windows:
@@ -113,5 +113,5 @@ jobs:
         with:
          upload_url: ${{ needs.create-release.outputs.release_upload_url }}
          asset_path: .\win_x64.zip
-         asset_name: smbeagle_${{ steps.version.outputs.version }}_win_x64.zip
+         asset_name: smbeagle_${{ needs.create-release.outputs.release_version }}_win_x64.zip
          asset_content_type: application/zip
