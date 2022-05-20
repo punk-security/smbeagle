@@ -75,7 +75,9 @@ namespace SMBeagle.FileDiscovery
 
             bool abort = false;
 
+            #nullable enable
             System.ConsoleCancelEventHandler handler = (object? sender, ConsoleCancelEventArgs e) => {
+            #nullable disable
                 if (e.SpecialKey.HasFlag(ConsoleSpecialKey.ControlBreak))
                 {
                     e.Cancel = true;
