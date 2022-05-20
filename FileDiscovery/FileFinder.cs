@@ -72,26 +72,49 @@ namespace SMBeagle.FileDiscovery
 
             if (!quiet)
                 OutputHelper.WriteLine($"6a. Enumerating all subdirectories for known paths");
+
+            bool abort = false;
+
+            System.ConsoleCancelEventHandler handler = (object? sender, ConsoleCancelEventArgs e) => {
+                if (e.SpecialKey.HasFlag(ConsoleSpecialKey.ControlBreak))
+                {
+                    e.Cancel = true;
+                    abort = true;
+                    Console.WriteLine("\nSKIPPING");
+                }
+                else
+                {
+                    Console.WriteLine("\nABORTED EXECUTION... Did you mean CTRL-BREAK?");
+                    Environment.Exit(0);
+                }
+            };
+
+            Console.CancelKeyPress += handler;
+
             foreach (Directory dir in _directories)
             {
-                if (verbose)
-                    OutputHelper.WriteLine($"Enumerating all subdirectories for '{dir.UNCPath}'",1);
-                dir.FindDirectoriesRecursively(crossPlatform: crossPlatform);
+                OutputHelper.WriteLine($"\rEnumerating all subdirectories for '{dir.UNCPath}' - CTRL-BREAK or CTRL-PAUSE to SKIP                                 ", 1, false);
+                dir.FindDirectoriesRecursively(crossPlatform: crossPlatform, ref abort);
+                abort = false;
             }
 
-            if(!quiet)
-                OutputHelper.WriteLine($"6b. Splitting large directories to optimise caching and to batch output");
+            Console.CancelKeyPress -= handler;
+
+            if (!quiet)
+                OutputHelper.WriteLine($"\r6b. Splitting large directories to optimise caching and to batch output                                              ");
 
             SplitLargeDirectories();
 
             if (!quiet)
                 OutputHelper.WriteLine($"6c. Enumerating files in directories");
 
+            Console.CancelKeyPress += handler;
             foreach (Directory dir in _directories)
             {
-                OutputHelper.WriteLine($"\renumerating files in '{dir.UNCPath}'                                          ", 1, false);
+                abort = false;
+                OutputHelper.WriteLine($"\renumerating files in '{dir.UNCPath}' - CTRL-BREAK or CTRL-PAUSE to SKIP                                          ", 1, false);
                 // TODO: pass in the ignored extensions from the commandline
-                dir.FindFilesRecursively(crossPlatform: crossPlatform, extensionsToIgnore: new List<string>() { ".dll",".manifest",".cat" });
+                dir.FindFilesRecursively(crossPlatform: crossPlatform, ref abort, extensionsToIgnore: new List<string>() { ".dll",".manifest",".cat" });
                 if (verbose)
                     OutputHelper.WriteLine($"\rFound {dir.ChildDirectories.Count} child directories and {dir.RecursiveFiles.Count} files in '{dir.UNCPath}'",2);
                 
@@ -110,6 +133,7 @@ namespace SMBeagle.FileDiscovery
                 dir.Clear();
                 CacheACL.Clear(); // Clear Cached ACLs otherwise it grows and grows
             }
+            Console.CancelKeyPress -= handler;
             OutputHelper.WriteLine($"\r  file enumeration complete, {FilesSentForOutput.Count} files identified                ");
         }
 

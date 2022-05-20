@@ -204,7 +204,7 @@ namespace SMBeagle.FileDiscovery
                 //TODO: Implement better error handling here, one explosion should not wipe out the whole enumeration
             }
         }
-        public void FindDirectoriesRecursively(bool crossPlatform)
+        public void FindDirectoriesRecursively(bool crossPlatform, ref bool abort)
         {
             if (crossPlatform)
                 FindDirectoriesCrossPlatform();
@@ -212,11 +212,13 @@ namespace SMBeagle.FileDiscovery
                 FindDirectoriesWindows();
             foreach (Directory dir in ChildDirectories)
             {
-                dir.FindDirectoriesRecursively(crossPlatform);
+                if (abort)
+                    return;
+                dir.FindDirectoriesRecursively(crossPlatform, ref abort);
             }
         }
 
-        public void FindFilesRecursively(bool crossPlatform, List<string> extensionsToIgnore = null)
+        public void FindFilesRecursively(bool crossPlatform, ref bool abort, List<string> extensionsToIgnore = null)
         {
             if (crossPlatform)
                 FindFilesCrossPlatform(extensionsToIgnore);
@@ -224,7 +226,9 @@ namespace SMBeagle.FileDiscovery
                 FindFilesWindows(extensionsToIgnore);
             foreach (Directory dir in RecursiveChildDirectories)
             {
-                dir.FindFilesRecursively(crossPlatform, extensionsToIgnore);
+                if (abort)
+                    return;
+                dir.FindFilesRecursively(crossPlatform, ref abort, extensionsToIgnore);
             }
         }
 
