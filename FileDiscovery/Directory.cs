@@ -74,7 +74,7 @@ namespace SMBeagle.FileDiscovery
         {
             try
             {
-                FileInfo[] files = new DirectoryInfo(Path).GetFiles("*.*");
+                FileInfo[] files = new DirectoryInfo(UNCPath).GetFiles("*.*");
                 foreach (FileInfo file in files)
                 {
                     if (extensionsToIgnore.Contains(file.Extension.ToLower()))
@@ -114,7 +114,7 @@ namespace SMBeagle.FileDiscovery
                             if (f.FileInformationClass == FileInformationClass.FileDirectoryInformation)
                             {
                                 FileDirectoryInformation d = (FileDirectoryInformation)f;
-                                if (d.FileAttributes != SMBLibrary.FileAttributes.Directory)
+                                if (! d.FileAttributes.HasFlag(SMBLibrary.FileAttributes.Directory))
                                 {
                                     string extension = d.FileName.Substring(d.FileName.LastIndexOf('.') + 1);
                                     string path;
