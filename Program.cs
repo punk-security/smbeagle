@@ -241,7 +241,7 @@ namespace SMBeagle
 
             if (hf.HostsWithShares.Count == 0)
             {
-                OutputHelper.WriteLine("There are no hosts with accessible SMB shares...");
+                OutputHelper.WriteLine("There are no hosts with accessible SMB shares.  Exiting...");
                 Environment.Exit(0);
             }
 
@@ -262,6 +262,46 @@ namespace SMBeagle
                 OutputHelper.WriteLine("accessible SMB shares:", 2);
                 foreach (Share share in shares)
                     OutputHelper.WriteLine(share.uncPath, 3);
+            }
+
+            if(opts.ExcludeHiddenShares || opts.Shares.Any() || opts.ExcludedShares.Any())
+                OutputHelper.WriteLine("6a. Filtering share list");
+
+            if (opts.Shares.Any())
+            {
+                OutputHelper.WriteLine("Keeping only named shares", 1);
+                shares = shares
+                    .Where(item => opts.Shares.ToList().ConvertAll(i => i.ToLower()).Contains(item.Name.ToLower()))
+                    .ToList();
+            }
+
+            if (opts.ExcludeHiddenShares)
+            {
+                OutputHelper.WriteLine("Filtering out hidden shares",1);
+                shares = shares
+                    .Where(item => !item.Name.EndsWith('$'))
+                    .ToList();
+            }
+
+            if (opts.ExcludedShares.Any())
+            {
+                OutputHelper.WriteLine("Filtering out named excluded shares", 1);
+                shares = shares
+                    .Where(item => ! opts.ExcludedShares.ToList().ConvertAll(i => i.ToLower()).Contains(item.Name.ToLower()))
+                    .ToList();
+            }
+
+            if (! shares.Any())
+            {
+                OutputHelper.WriteLine("There are no accessible SMB shares to scan.  Exiting...");
+                Environment.Exit(0);
+            }
+
+            if (opts.Verbose)
+            {
+                OutputHelper.WriteLine($"Shares found:", 1);
+                foreach (Share s in shares)
+                    OutputHelper.WriteLine(s.uncPath, 2);
             }
 
             OutputHelper.WriteLine("6. Enumerating accessible shares, this can be slow...");
@@ -338,9 +378,9 @@ namespace SMBeagle
             [Option('D', "disable-network-discovery", Required = false, HelpText = "Disable network discovery")]
             public bool DisableNetworkDiscovery { get; set; }
 
-            [Option('n', "network", Required = false, HelpText = "Manually add network to scan")]
+            [Option('n', "network", Required = false, HelpText = "Manually add network to scan (multiple accepted)")]
             public IEnumerable<String> Networks { get; set; }
-            [Option('N', "exclude-network", Required = false, HelpText = "Exclude a network from scanning")]
+            [Option('N', "exclude-network", Required = false, HelpText = "Exclude a network from scanning (multiple accepted)")]
             public IEnumerable<string> ExcludedNetworks { get; set; }
 
             [Option('h', "host", Required = false, HelpText = "Manually add host to scan")]
@@ -351,6 +391,15 @@ namespace SMBeagle
 
             [Option('q', "quiet", Required = false, HelpText = "Disable unneccessary output")]
             public bool Quiet { get; set; }
+
+            [Option('S', "exclude-share", Required = false, HelpText = "Do not scan shares with this name (multiple accepted)")]
+            public IEnumerable<string> ExcludedShares { get; set; }
+
+            [Option('s', "share", Required = false, HelpText = "Only scan shares with this name (multiple accepted)")]
+            public IEnumerable<string> Shares { get; set; }
+
+            [Option('E', "exclude-hidden-shares", Required = false, HelpText = "Exclude shares ending in $")]
+            public bool ExcludeHiddenShares { get; set; }
 
             [Option('v', "verbose", Required = false, HelpText = "Give more output")]
             public bool Verbose { get; set; }
