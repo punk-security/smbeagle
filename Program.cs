@@ -372,7 +372,7 @@ namespace SMBeagle
 
             [Option('l', "scan-local-drives", Required = false, HelpText = "Scan local drives on this machine")]
             public bool EnumerateLocalDrives { get; set; }
-            [Option('L', "exclude-local-shares", Required = false, HelpText = "Do not scan local drives on this machine")]
+            [Option('L', "exclude-local-shares", Required = false, HelpText = "Do not scan local shares on this machine")]
             public bool DisableLocalShares { get; set; }
 
             [Option('D', "disable-network-discovery", Required = false, HelpText = "Disable network discovery")]
