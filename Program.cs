@@ -68,6 +68,8 @@ namespace SMBeagle
 
             if (opts.ElasticsearchHost != null)
                 OutputHelper.EnableElasticsearchLogging($"http://{opts.ElasticsearchHost}:9200/", username);
+            else if (opts.ElasticsearchHost != null && opts.ElasticsearchPort != null
+                OutputHelper.EnableElasticsearchLogging($"http://{opts.ElasticsearchHost}:{opts.ElasticsearchPort}/", username);
 
             if (opts.CsvFile != null)
                 OutputHelper.EnableCSVLogging(opts.CsvFile, username);
@@ -367,11 +369,15 @@ namespace SMBeagle
             [Option('e', "elasticsearch-host", Group = "output", Required = false, HelpText = "Output results to elasticsearch by providing elasticsearch hostname (port is set to 9200 automatically)")]
             public string ElasticsearchHost { get; set; }
 
+            [Option('E', "elasticsearch-port", Group = "output", Required = false, HelpText = "Output results to elasticsearch by providing elasticsearch port")]
+            public string ElasticsearchPort { get; set; }
+
             [Option('f', "fast", Required = false, HelpText = "Enumerate only one files permissions per directory")]
             public bool EnumerateOnlyASingleFilesAcl { get; set; }
 
             [Option('l', "scan-local-drives", Required = false, HelpText = "Scan local drives on this machine")]
             public bool EnumerateLocalDrives { get; set; }
+
             [Option('L', "exclude-local-shares", Required = false, HelpText = "Do not scan local shares on this machine")]
             public bool DisableLocalShares { get; set; }
 
