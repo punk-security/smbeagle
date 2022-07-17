@@ -2,12 +2,12 @@ version: '3'
 
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.14.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15
     container_name: elasticsearch
     restart: 'no'
     hostname: elasticsearch
     ports:
-    - "127.0.0.1:9200:9200"
+      - "127.0.0.1:9200:9200"
     volumes:
       # - ~/elasticsearch:/usr/share/elasticsearch/data # Linux mapping
       - C:\elasticsearch:/usr/share/elasticsearch/data # Windows mapping
@@ -22,14 +22,14 @@ services:
       search.max_buckets: 250000
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:7.14.2
+    image: docker.elastic.co/kibana/kibana:7.15
     container_name: kibana
     restart: 'no'
     hostname: kibana
     depends_on:
       - elasticsearch
     ports:
-    - "127.0.0.1:5601:5601"
+      - "127.0.0.1:5601:5601"
     environment:
       SERVER_HOST: 0.0.0.0
       SERVER_PORT: 5601
