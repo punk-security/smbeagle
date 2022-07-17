@@ -71,8 +71,8 @@ jobs:
       with:
         name: windows-x64
         path: packages\windows/x64\*
-  test_linux:
-    runs_on: ubuntu-latest
+  test_on_linux:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
