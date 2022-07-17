@@ -86,12 +86,11 @@ jobs:
         run: dotnet publish -c Release --self-contained -r linux-x64 -o packages/linux/amd64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false -p:VersionSuffix=pr$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
       - name: install test dependencies
         run: |
-          apt update && apt install python3 python3-pip -y
           pip install impacket pytest
       - run: |
-          cp packages/linux/amd64/SMBeagle /bin/smbeagle
-          chmod +x /bin/smbeagle
-          mkdir /empty_dir
+          sudo cp packages/linux/amd64/SMBeagle /bin/smbeagle
+          sudo chmod +x /bin/smbeagle
+          sudo mkdir /empty_dir
       - name: run pytest
         run: |
           cd tests
