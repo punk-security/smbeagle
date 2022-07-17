@@ -44,6 +44,7 @@ class SMB(object):
 
     def __exit__(self, *args, **kwargs):
         self.smb.kill()
+        sleep(1)
         shutil.rmtree(self.dir)
         #self.smb.close()
 
