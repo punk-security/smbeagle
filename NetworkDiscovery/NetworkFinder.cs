@@ -133,20 +133,25 @@ namespace SMBeagle.NetworkDiscovery
             return new HashSet<string>(addresses).ToList();
         }
 
-        public List<string> DiscoverNetworksViaClientConfiguration()
+        public List<string> DiscoverNetworksViaClientConfiguration(bool store=true)
         {
+            List<string> localAddresses = new();
             foreach (NetworkInterface iface in NetworkInterface.GetAllNetworkInterfaces())
             {
                 List<UnicastIPAddressInformation> addresses = iface.GetIPProperties().UnicastAddresses.ToList();
                 foreach (UnicastIPAddressInformation address in addresses)
                 {
-                    AddLocalAddress(address.Address.ToString());
-                    // Convert to network and attempt to store
-                    string net = ConvertAddressToNetwork(address.Address.ToString(), address.IPv4Mask.ToString());
-                    AddNetwork(net, NetworkDiscoverySourceEnum.LOCAL);
+                    localAddresses.Add(address.Address.ToString());
+                    if (store)
+                    {
+                        AddLocalAddress(address.Address.ToString());
+                        // Convert to network and attempt to store
+                        string net = ConvertAddressToNetwork(address.Address.ToString(), address.IPv4Mask.ToString());
+                        AddNetwork(net, NetworkDiscoverySourceEnum.LOCAL);
+                    }
                 }
             }
-            return new List<string>();
+            return localAddresses;
         }
 
         public void AddLocalAddress(string address)

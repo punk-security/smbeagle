@@ -43,7 +43,7 @@ namespace SMBeagle.FileDiscovery
             }
         }
 
-        public FileFinder(List<Share> shares, bool enumerateLocalDrives = true, bool getPermissionsForSingleFileInDir = true, bool enumerateAcls = true, bool quiet = false, bool verbose = false, bool crossPlatform = false)
+        public FileFinder(List<Share> shares, bool getPermissionsForSingleFileInDir = true, bool enumerateAcls = true, bool quiet = false, bool verbose = false, bool crossPlatform = false)
         {
             pClientContext = IntPtr.Zero;
             if (! crossPlatform)
@@ -64,11 +64,6 @@ namespace SMBeagle.FileDiscovery
             {
                 _directories.Add(new Directory(path: "", share:share) { DirectoryType = Enums.DirectoryTypeEnum.SMB });
             }
-
-            /* TODO: Reimplement in future
-            if (enumerateLocalDrives)
-                _directories.AddRange(GetLocalDriveDirectories());
-            */
 
             if (!quiet)
                 OutputHelper.WriteLine($"6a. Enumerating all subdirectories for known paths");
