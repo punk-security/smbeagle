@@ -57,7 +57,7 @@ jobs:
           cd tests
           sudo ROOTDIR=/ pytest -v -k "not on_windows"
   build_windows:
-    runs-on: windows-2022
+    runs-on: windows-2019
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET
