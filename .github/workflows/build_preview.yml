@@ -93,7 +93,7 @@ jobs:
           sudo mkdir /empty_dir
       - name: run pytest
         env:
-          ROOT_DIR: /
+          ROOTDIR: /
         run: |
           cd tests
           sudo pytest -v
