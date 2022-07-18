@@ -94,4 +94,4 @@ jobs:
       - name: run pytest
         run: |
           cd tests
-          sudo ROOTDIR=/ pytest -v
+          sudo ROOTDIR=/ pytest -v -k "not on_windows"
