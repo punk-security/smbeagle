@@ -83,3 +83,17 @@ jobs:
       with:
         name: windows-x64
         path: packages\windows/x64\*
+    - name: Prep tests
+      env:
+        PYTHON_VERSION: 3.10.5
+      run: |
+        powershell -noprofile -executionpolicy bypass -file tests\windows_scripts\install_python.ps1
+        pip install impacket pytest
+        mkdir empty_dir
+        cp packages\windows\x64\* C:\windows\system32\ 
+    - name: Run tests
+      env:
+        ROOTDIR: C:\
+      run: |
+        cd tests
+        pytest -v -k "not on_linux"
