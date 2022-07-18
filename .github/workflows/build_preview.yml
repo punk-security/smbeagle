@@ -43,10 +43,9 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: linux-arm
-          path: packages/linux/arm64/*
+          path: packages/linux/arm64/* 
   build_windows:
     runs-on: windows-2019
-
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET
@@ -72,6 +71,27 @@ jobs:
       with:
         name: windows-x64
         path: packages\windows/x64\*
-
-  
-
+  test_on_linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build linux x64
+        run: dotnet publish -c Release --self-contained -r linux-x64 -o packages/linux/amd64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false -p:VersionSuffix=pr$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+      - name: install test dependencies
+        run: |
+          sudo pip install impacket pytest
+      - run: |
+          sudo cp packages/linux/amd64/SMBeagle /bin/smbeagle
+          sudo chmod +x /bin/smbeagle
+          sudo mkdir /empty_dir
+      - name: run pytest
+        run: |
+          cd tests
+          sudo pytest -v
