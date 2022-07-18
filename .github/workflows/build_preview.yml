@@ -89,7 +89,7 @@ jobs:
       run: |
         powershell -noprofile -executionpolicy bypass -file tests\windows_scripts\install_python.ps1
         pip install impacket pytest
-        mkdir empty_dir
+        mkdir C:\empty_dir
         cp packages\windows\x64\* C:\windows\system32\ 
     - name: Run tests
       env:
