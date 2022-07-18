@@ -6,14 +6,16 @@ from time import sleep
 import csv
 import shutil
 import uuid
+import platform
 
 
 def __setupSMB(address, dir, SMB2 = True):
-    os.chdir("/empty_dir")
+    os.chdir(f"{os.environ['ROOTDIR']}empty_dir")
     server = smbserver.SimpleSMBServer(listenAddress=address, listenPort=445)
     server.addShare("share", dir, "")
     server.addCredential("test", 1200, "9FD78381EC915F1AAAD3B435B51404EE", "25EDEDFF26CB970623DDA4733227A3F7")
     server.setSMB2Support(SMB2)
+    server.setLogFile('')
     server.start()
 
 def setupSMB(address, dir):
@@ -25,7 +27,7 @@ class SMB(object):
     def __init__(self, address = "0.0.0.0", dir_structure = ["fileA", "fileB"]):
         self.address = address
         self.dir_structure = dir_structure
-        self.dir = f"/{uuid.uuid4().hex}"
+        self.dir = f"{os.environ['ROOTDIR']}{uuid.uuid4().hex}"
     def __enter__(self):
         self.smb = setupSMB(self.address, self.dir)
         os.mkdir(self.dir)
@@ -57,8 +59,15 @@ def runSMBeagle(*args, print_out=True):
 def runSMBeagleToCSV(*args):
     return runSMBeagle("-c","out.csv",*args)
 
+def runSMBeagleQuick(*args):
+    return runSMBeagleToCSV("-D",*args)
+
 def runSMBeagleToCSVWithAuth(*args):
-    return runSMBeagleToCSV("-u","test", "-p", "goose", *args)
+    try:
+        os.environ["NATIVE_AUTH"]
+        return runSMBeagleToCSV(*args)
+    except:
+        return runSMBeagleToCSV("-u","test", "-p", "goose", *args)
 
 def runSMBeagleToCSVWithAuthAndReturnResults(*args):
     print(runSMBeagleToCSVWithAuth(*args))
