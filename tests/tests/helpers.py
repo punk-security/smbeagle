@@ -6,7 +6,6 @@ from time import sleep
 import csv
 import shutil
 import uuid
-import platform
 
 
 def __setupSMB(address, dir, SMB2 = True):
