@@ -92,6 +92,8 @@ jobs:
           sudo chmod +x /bin/smbeagle
           sudo mkdir /empty_dir
       - name: run pytest
+        env:
+          ROOT_DIR: /
         run: |
           cd tests
           sudo pytest -v
