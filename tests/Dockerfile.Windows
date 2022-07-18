@@ -1,0 +1,23 @@
+FROM mcr.microsoft.com/windows:20H2
+ENV PYTHON_VERSION 3.10.5
+ENV PYTHON_GET_PIP_URL https://bootstrap.pypa.io/get-pip.py
+
+COPY windows_scripts/* /
+RUN "powershell -noprofile -executionpolicy bypass -file .\install_python.ps1"
+
+RUN "pip install impacket pytest"
+
+ENV ROOTDIR "C:\\"
+WORKDIR "C:\\"
+RUN mkdir empty_dir tests
+COPY tests tests
+COPY x64 "C:\\windows\\system32\\."
+WORKDIR tests
+CMD pytest -v -k "not on_linux"
+
+# Cant test native auth as windows auth broken in containers... tried this hacky fix but no good
+#RUN net user /add test 
+#RUN net localgroup administrators test /add
+#USER test
+#ENV NATIVE_AUTH=1
+#RUN net user test goose; pytest -k test_fifty_files_in_the_root

@@ -65,8 +65,8 @@ namespace SMBeagle
             if (opts.Domain != "")
                 username = $"{opts.Domain}\\{username}";
 
-            if (opts.ElasticsearchHost != null)
-                OutputHelper.EnableElasticsearchLogging($"http://{opts.ElasticsearchHost}:9200/", username);
+            if (opts.ElasticsearchHost != null && opts.ElasticsearchPort != null)
+                OutputHelper.EnableElasticsearchLogging($"http://{opts.ElasticsearchHost}:{opts.ElasticsearchPort}/", username);
 
             if (opts.CsvFile != null)
                 OutputHelper.EnableCSVLogging(opts.CsvFile, username);
@@ -363,8 +363,11 @@ namespace SMBeagle
             [Option('c', "csv-file", Group = "output", Required = false, HelpText = "Output results to a CSV file by providing filepath")]
             public string CsvFile { get; set; }
 
-            [Option('e', "elasticsearch-host", Group = "output", Required = false, HelpText = "Output results to elasticsearch by providing elasticsearch hostname (port is set to 9200 automatically)")]
+            [Option('e', "elasticsearch-host", Group = "output", Required = false, HelpText = "Output results to elasticsearch by providing elasticsearch hostname (default port is 9200 , but can be overridden)")]
             public string ElasticsearchHost { get; set; }
+
+            [Option("elasticsearch-port", Required = false, Default = "9200", HelpText = "Define the elasticsearch custom port if required")]
+            public string ElasticsearchPort { get; set; }
 
             [Option('f', "fast", Required = false, HelpText = "Enumerate only one files permissions per directory")]
             public bool EnumerateOnlyASingleFilesAcl { get; set; }
