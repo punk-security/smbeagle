@@ -40,11 +40,6 @@ namespace SMBeagle
                     OutputHelper.WriteLine("ERROR: Username and Password required on none Windows platforms");
                     Environment.Exit(1);
                 }
-                if (opts.EnumerateLocalDrives)
-                {
-                    OutputHelper.WriteLine("ERROR: We cannot enumrate local drives on None Windows platforms");
-                    Environment.Exit(1);
-                }
             }
 
             if (opts.Username == null ^ opts.Password == null)
@@ -57,7 +52,11 @@ namespace SMBeagle
             {
                 crossPlatform = true;
                 // The library we use hangs when scanning ourselves
-                opts.DisableLocalShares = true;
+                if (opts.ScanLocalShares)
+                {
+                    OutputHelper.WriteLine("ERROR: We cannot scan local shares when running on Linux or with commandline credentials");
+                    Environment.Exit(1);
+                }
             }
 
             String username = "";
@@ -152,9 +151,10 @@ namespace SMBeagle
                 OutputHelper.WriteLine("2. Skipping filtering as network discovery disabled...");
             }
 
-            if (opts.DisableLocalShares)
-                filteredAddresses.AddRange(nf.LocalAddresses);
-
+            if (! opts.ScanLocalShares)
+            {
+                filteredAddresses.AddRange(nf.DiscoverNetworksViaClientConfiguration(store:false));
+            }
             filteredAddresses.AddRange(opts.ExcludedHosts.ToList());
 
             List<string> addresses = new();
@@ -311,7 +311,6 @@ namespace SMBeagle
                 ff = new(
                     shares: shares, 
                     getPermissionsForSingleFileInDir: opts.EnumerateOnlyASingleFilesAcl, 
-                    enumerateLocalDrives: (opts.EnumerateLocalDrives && RuntimeInformation.IsOSPlatform(OSPlatform.Windows)),
                     enumerateAcls: !opts.DontEnumerateAcls,
                     verbose: opts.Verbose,
                     crossPlatform:crossPlatform
@@ -373,11 +372,8 @@ namespace SMBeagle
             [Option('f', "fast", Required = false, HelpText = "Enumerate only one files permissions per directory")]
             public bool EnumerateOnlyASingleFilesAcl { get; set; }
 
-            [Option('l', "scan-local-drives", Required = false, HelpText = "Scan local drives on this machine")]
-            public bool EnumerateLocalDrives { get; set; }
-
-            [Option('L', "exclude-local-shares", Required = false, HelpText = "Do not scan local shares on this machine")]
-            public bool DisableLocalShares { get; set; }
+            [Option('l', "scan-local-shares", Required = false, HelpText = "Scan the local shares on this machine")]
+            public bool ScanLocalShares { get; set; }
 
             [Option('D', "disable-network-discovery", Required = false, HelpText = "Disable network discovery")]
             public bool DisableNetworkDiscovery { get; set; }
@@ -433,7 +429,6 @@ namespace SMBeagle
                     yield return new Example("Output to elasticsearch (Preffered)", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1" });
                     yield return new Example("Output to elasticsearch and CSV", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1", CsvFile = "out.csv" });
                     yield return new Example("Disable network discovery and provide manual networks", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1", DisableNetworkDiscovery = true,  Networks = new List<String>() { "192.168.12.0./23", "192.168.15.0/24" } });
-                    yield return new Example("Scan local filesystem too (SLOW)", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1", EnumerateLocalDrives = true });
                     yield return new Example("Do not enumerate ACLs (FASTER)", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1", DontEnumerateAcls = true });
                 }
             }
