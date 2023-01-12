@@ -426,7 +426,7 @@ namespace SMBeagle
                     UnParserSettings unParserSettings = new();
                     unParserSettings.PreferShortName = true;
                     yield return new Example("Output to a CSV file", unParserSettings,new Options { CsvFile = "out.csv" });
-                    yield return new Example("Output to elasticsearch (Preffered)", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1" });
+                    yield return new Example("Output to elasticsearch (Preferred)", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1" });
                     yield return new Example("Output to elasticsearch and CSV", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1", CsvFile = "out.csv" });
                     yield return new Example("Disable network discovery and provide manual networks", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1", DisableNetworkDiscovery = true,  Networks = new List<String>() { "192.168.12.0./23", "192.168.15.0/24" } });
                     yield return new Example("Do not enumerate ACLs (FASTER)", unParserSettings, new Options { ElasticsearchHost = "127.0.0.1", DontEnumerateAcls = true });

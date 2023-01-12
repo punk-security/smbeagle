@@ -90,8 +90,6 @@ Output to elasticsearch and CSV:
   SMBeagle -c out.csv -e 127.0.0.1
 Disable network discovery and provide manual networks:
   SMBeagle -D -e 127.0.0.1 -n 192.168.12.0./23 192.168.15.0/24
-Scan local filesystem too (SLOW):
-  SMBeagle -e 127.0.0.1 -l
 Do not enumerate ACLs (FASTER):
   SMBeagle -A -e 127.0.0.1
 
@@ -99,18 +97,26 @@ Do not enumerate ACLs (FASTER):
                                      file by providing filepath
   -e, --elasticsearch-host           (Group: output) Output results to
                                      elasticsearch by providing elasticsearch
-                                     hostname (port is set to 9200
-                                     automatically)
+                                     hostname (default port is 9200 , but can be
+                                     overridden)
+  --elasticsearch-port               (Default: 9200) Define the elasticsearch
+                                     custom port if required
   -f, --fast                         Enumerate only one files permissions per
                                      directory
-  -l, --scan-local-drives            Scan local drives on this machine
-  -L, --exclude-local-shares         Do not scan local drives on this machine
+  -l, --scan-local-shares            Scan the local shares on this machine
   -D, --disable-network-discovery    Disable network discovery
-  -n, --network                      Manually add network to scan
-  -N, --exclude-network              Exclude a network from scanning
+  -n, --network                      Manually add network to scan (multiple
+                                     accepted)
+  -N, --exclude-network              Exclude a network from scanning (multiple
+                                     accepted)
   -h, --host                         Manually add host to scan
   -H, --exclude-host                 Exclude a host from scanning
   -q, --quiet                        Disable unneccessary output
+  -S, --exclude-share                Do not scan shares with this name (multiple
+                                     accepted)
+  -s, --share                        Only scan shares with this name (multiple
+                                     accepted)
+  -E, --exclude-hidden-shares        Exclude shares ending in $
   -v, --verbose                      Give more output
   -m, --max-network-cidr-size        (Default: 20) Maximum network size to scan
                                      for SMB Hosts
