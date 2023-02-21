@@ -252,7 +252,7 @@ namespace SMBeagle
 
             if (!opts.Quiet)
             {
-                OutputHelper.WriteLine("reachabled hosts with accessible SMB shares:",2);
+                OutputHelper.WriteLine("reachable hosts with accessible SMB shares:",2);
                 foreach (Host host in hf.HostsWithShares)
                     OutputHelper.WriteLine(host.Address,3);
             }
