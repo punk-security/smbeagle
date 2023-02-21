@@ -35,10 +35,15 @@ namespace SMBeagle
             if (! RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // TODO: should we have an enum for exit codes?
-                if (opts.Username == null|| opts.Password == null)
+                if (opts.Username == null)
                 {
-                    OutputHelper.WriteLine("ERROR: Username and Password required on none Windows platforms");
-                    Environment.Exit(1);
+                    OutputHelper.WriteLine("Setting empty Username to \" \" on non-Windows platform (override with -u)");
+                    opts.Username = " ";
+                }
+                if (opts.Password == null)
+                {
+                    OutputHelper.WriteLine("Setting empty Password to \" \" on non-Windows platform (override with -p)");
+                    opts.Password = " ";
                 }
             }
 
