@@ -10,11 +10,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SMBeagle
 {
     class Program
     {
+        [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(Options))]
         static void Main(string[] args)
         {
             var parser = new Parser(with => with.HelpWriter = null);
