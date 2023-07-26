@@ -55,7 +55,7 @@ jobs:
       - name: run pytest
         run: |
           cd tests
-          sudo ROOTDIR=/ pytest -v -k "test_one_host_one_file"
+          sudo ROOTDIR=/ pytest -v -k "not on_windows"
   build_windows:
     runs-on: windows-2019
     steps:

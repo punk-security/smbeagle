@@ -55,7 +55,7 @@ def test_one_host_empty_dir_nested_twice():
 
 def test_one_host_one_file():
     with SMB(dir_structure=one_file):
-        assert runSMBeagleToCSVWithAuthAndReturnResults("-h", "127.0.0.2") == 1
+        assert len(runSMBeagleToCSVWithAuthAndReturnResults("-h", "127.0.0.2")) == 1
 
 def test_one_host_two_files():
     with SMB(dir_structure=two_files):
