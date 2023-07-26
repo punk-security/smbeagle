@@ -2,13 +2,22 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <VersionPrefix>2.2.1</VersionPrefix>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <WarningLevel>3</WarningLevel>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="tests\SMBeagle-Tests\**" />
+    <Compile Remove="tests\x64\**" />
+    <EmbeddedResource Remove="tests\SMBeagle-Tests\**" />
+    <EmbeddedResource Remove="tests\x64\**" />
+    <None Remove="tests\SMBeagle-Tests\**" />
+    <None Remove="tests\x64\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Remove="LICENSE" />
