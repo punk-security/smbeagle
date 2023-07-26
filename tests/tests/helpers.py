@@ -70,7 +70,6 @@ def runSMBeagleToCSVWithAuth(*args):
 
 def runSMBeagleToCSVWithAuthAndReturnResults(*args):
     print(runSMBeagleToCSVWithAuth(*args))
-    sleep(30) # wait for file to flush
     with open('out.csv', newline='') as csvfile:
         results = list(csv.DictReader(csvfile, delimiter=',', quotechar='"'))
         for result in results:
