@@ -50,7 +50,7 @@ class SMB(object):
         #self.smb.close()
 
 def runSMBeagle(*args, print_out=True):
-    run = subprocess.run(["smbeagle",*args], stdout = subprocess.PIPE, universal_newlines=True)
+    run = subprocess.run(["./SMBeagle.exe",*args], stdout = subprocess.PIPE, universal_newlines=True)
     if print_out:
         print(run.stdout)
     return run.stdout
@@ -70,6 +70,7 @@ def runSMBeagleToCSVWithAuth(*args):
 
 def runSMBeagleToCSVWithAuthAndReturnResults(*args):
     print(runSMBeagleToCSVWithAuth(*args))
+    sleep(30) # wait for file to flush
     with open('out.csv', newline='') as csvfile:
         results = list(csv.DictReader(csvfile, delimiter=',', quotechar='"'))
         for result in results:
