@@ -50,7 +50,7 @@ class SMB(object):
         #self.smb.close()
 
 def runSMBeagle(*args, print_out=True):
-    run = subprocess.run(["./SMBeagle.exe",*args], stdout = subprocess.PIPE, universal_newlines=True)
+    run = subprocess.run(["smbeagle",*args], stdout = subprocess.PIPE, universal_newlines=True)
     if print_out:
         print(run.stdout)
     return run.stdout
