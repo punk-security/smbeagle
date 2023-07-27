@@ -21,9 +21,9 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
       - name: Build linux x64
-        run: dotnet publish -c Release --self-contained -r linux-x64 -o packages/linux/amd64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false -p:VersionSuffix=pr$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+        run: dotnet publish -c Release --self-contained -r linux-x64 -o packages/linux/amd64 -p:PublishSingleFile=true -p:PublishTrimmed=partial -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false -p:VersionSuffix=pr$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
       - name: Build linux arm
-        run: dotnet publish -c Release --self-contained -r linux-arm64 -o packages/linux/arm64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false -p:DebugSymbols=false -p:VersionSuffix=pr$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+        run: dotnet publish -c Release --self-contained -r linux-arm64 -o packages/linux/arm64 -p:PublishSingleFile=true -p:PublishTrimmed=partial -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false -p:DebugSymbols=false -p:VersionSuffix=pr$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -68,7 +68,7 @@ jobs:
       run: dotnet restore
     - name: Build windows x64
       shell: bash
-      run: dotnet publish -c Release --self-contained -r win-x64 -o packages/windows/x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false -p:VersionSuffix=pr$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+      run: dotnet publish -c Release --self-contained -r win-x64 -o packages/windows/x64 -p:PublishSingleFile=true -p:PublishTrimmed=partial -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false -p:VersionSuffix=pr$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
     - name: Install signing tool
       run: dotnet tool install --global AzureSignTool --version 3.0.0
     - name: Digitally sign executable
