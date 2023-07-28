@@ -81,9 +81,9 @@ To scan a public network, declare it manually with something like `-n 1.0.0.1/32
 ### Docker usage
 Punk security provides a linux docker image of SMBeagle.
 
-To get findings out, you need to mount a folder in and tell SMBeagle to save its output to it (or use elasticsearch)
+To get findings out, you will need to mount a folder into the container and tell SMBeagle to save its output to that mount (or use elasticsearch)
 
-A good started example is:
+A good starter example is:
 
 `docker run -v "$(pwd)/output:/tmp/output" punksecurity/smbeagle -c /tmp/output/results.csv -n 10.10.10.0/24`
 
