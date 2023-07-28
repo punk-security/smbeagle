@@ -152,4 +152,12 @@ Do not enumerate ACLs (FASTER):
 SMBeagle does a lot of work, which is broken down into loosely coupled modules which hand off to each other.
 This keeps the design simple and allows us to extend each module easily.
 
+In summary it:
+
+* Looks at your local machine for network connections and adapters
+* Takes all those private adaptors and connections and builds a list of private network candidates
+* Scans those networks for TCP port 445
+* Scans all detected SMB servers for accessible shares
+* Inventories all those shares for files and checks Read, Write, Delete permissions
+
 ![Schematic](Docs/schematic.png)
