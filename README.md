@@ -52,15 +52,12 @@ provide management visuals and makes data pivoting all the easier.
 * ```docker pull punksecurity/smbeagle```
 
 ### Linux
-* Go to the latest release on the right-hand side of the repo >>>>  
+* Go to the latest release https://github.com/punk-security/smbeagle/releases/latest
 * Download the linux_amd64.zip or linux_arm64.zip
 * Unzip the download and run smbeagle from the terminal
 
--- OR --
-* wget https://github.com/punk-security/smbeagle/releases/download/```RELEASE_VERSION```/smbeagle_```RELEASE_VERSION```_linux_```ARCH```.zip
-
 ### Windows
-* Go to the latest release on the right-hand side of the repo >>>>  
+* Go to the latest release https://github.com/punk-security/smbeagle/releases/latest
 * Download the win_x64.zip (only 64bit is supported at the moment)
 * Unzip the download and run SMBeagle.exe from a command prompt or powershell terminal
 
