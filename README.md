@@ -16,15 +16,13 @@
     
 # SMBeagle
 
-*** We now run on Linux!!! ***
-
-## Intro
-
-SMBeagle is an (SMB) fileshare auditing tool that hunts out all files it can see in the network 
+SMBeagle is a cross-platform (SMB) fileshare auditing tool that hunts out all files it can see in the network 
 and reports if the file can be read and/or written.  All these findings are streamed out to either
 a CSV file or an elasticsearch host, or both!?  🚀
 
-SMBeagle tries to make use of the win32 APIs for maximum speed, but fails back to a slower ACL check.
+When running on Windows, with no credentials provided, SMBeagle will make use of the win32 APIs for maximum speed, and integrated auth.
+
+When running on Linux, or when credentials are provided, we use the cross-platform file scanning through [SMBLibrary](https://github.com/TalAloni/SMBLibrary)
 
 It has 2 awesome use cases:
 
@@ -50,6 +48,18 @@ provide management visuals and makes data pivoting all the easier.
 
 ## Installation
 
+### Docker
+* ```docker pull punksecurity/smbeagle```
+
+### Linux
+* Go to the latest release on the right-hand side of the repo >>>>  
+* Download the linux_amd64.zip or linux_arm64.zip
+* Unzip the download and run smbeagle from the terminal
+
+-- OR --
+* wget https://github.com/punk-security/smbeagle/releases/download/```RELEASE_VERSION```/smbeagle_```RELEASE_VERSION```_linux_```ARCH```.zip
+
+### Windows
 * Go to the latest release on the right-hand side of the repo >>>>  
 * Download the win_x64.zip (only 64bit is supported at the moment)
 * Unzip the download and run SMBeagle.exe from a command prompt or powershell terminal
@@ -74,9 +84,14 @@ To scan a public network, declare it manually with something like `-n 1.0.0.1/32
 ### Docker usage
 Punk security provides a linux docker image of SMBeagle.
 
-Run SMBeagle: `docker run -v "./output:/tmp/output" punksecurity/smbeagle -c /tmp/output/results.csv -n 10.10.10.0/24`
+To get findings out, you need to mount a folder in and tell SMBeagle to save its output to it (or use elasticsearch)
+
+A good started example is:
+
+`docker run -v "$(pwd)/output:/tmp/output" punksecurity/smbeagle -c /tmp/output/results.csv -n 10.10.10.0/24`
+
 Note that network discovery is disabled when running in docker, so make sure you pass the ranges that
-you wish to scan with the `-n` command line switch.
+you wish to scan with the `-n` command line switch, or hosts will the `-h` switch.
 
 ### Full Usage
 
