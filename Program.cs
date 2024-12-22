@@ -308,14 +308,34 @@ namespace SMBeagle
 
             OutputHelper.WriteLine("6. Enumerating accessible shares, this can be slow...");
 
-            // Find files on all the shares
-            FileFinder
+            List<String> filePatterns = new List<string> { ".*(password|config|credentials|creds).*", ".*(ps1|bat|vbs|sh|cmd)$" };
+
+
+			if (opts.GrabFiles)
+            {
+                OutputHelper.WriteLine($"Grabbing files and storing them in {opts.OutputDirectory}", 1);
+                if (opts.FilePatterns.Any())
+                {
+                    filePatterns = opts.FilePatterns.ToList();
+					OutputHelper.WriteLine($"Using the provided regexes", 1);
+				}
+            }
+            else
+            {
+				OutputHelper.WriteLine($"NOT Grabbing files - use the '-g' flag to grab them if needed", 1);
+			}
+
+			// Find files on all the shares
+			FileFinder
                 ff = new(
-                    shares: shares, 
-                    getPermissionsForSingleFileInDir: opts.EnumerateOnlyASingleFilesAcl, 
+                    shares: shares,
+                    outputDirectory: opts.OutputDirectory,
+                    filePatterns: filePatterns,
+                    fetchFiles: opts.GrabFiles,
+                    getPermissionsForSingleFileInDir: opts.EnumerateOnlyASingleFilesAcl,
                     enumerateAcls: !opts.DontEnumerateAcls,
                     verbose: opts.Verbose,
-                    crossPlatform:crossPlatform
+                    crossPlatform: crossPlatform
                     );
 
             OutputHelper.WriteLine("7. Completing the writes to CSV or elasticsearch (or both)");
@@ -400,7 +420,16 @@ namespace SMBeagle
             [Option('s', "share", Required = false, HelpText = "Only scan shares with this name (multiple accepted)")]
             public IEnumerable<string> Shares { get; set; }
 
-            [Option('E', "exclude-hidden-shares", Required = false, HelpText = "Exclude shares ending in $")]
+			[Option("file-pattern", Required = false, HelpText = "Only fetch files matching these regexes patterns")]
+			public IEnumerable<string> FilePatterns { get; set; }
+
+			[Option('g', "grab-files", Required = false, HelpText = "Grab files and store them locally")]
+			public bool GrabFiles { get; set; }
+
+			[Option("loot", Required = false, Default = "loot", HelpText = "Path to store grabbed files")]
+			public string OutputDirectory { get; set; }
+
+			[Option('E', "exclude-hidden-shares", Required = false, HelpText = "Exclude shares ending in $")]
             public bool ExcludeHiddenShares { get; set; }
 
             [Option('v', "verbose", Required = false, HelpText = "Give more output")]

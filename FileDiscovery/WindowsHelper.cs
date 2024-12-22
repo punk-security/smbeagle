@@ -7,7 +7,7 @@ using System.Security.Principal;
 namespace SMBeagle.FileDiscovery
 {
     [SupportedOSPlatform("windows")]
-    class WindowsPermissionHelper
+    class WindowsHelper
     {
         [DllImport("advapi32.dll", SetLastError = true)]
         static extern uint GetEffectiveRightsFromAcl(IntPtr pDacl, ref TRUSTEE pTrustee, ref ACCESS_MASK pAccessRights);
@@ -211,7 +211,7 @@ namespace SMBeagle.FileDiscovery
 
         public static IntPtr GetpClientContext()
         {
-            IntPtr sid = WindowsPermissionHelper.GetUserSid();
+            IntPtr sid = WindowsHelper.GetUserSid();
             IntPtr hManager = IntPtr.Zero;
             AuthzInitializeResourceManager(1, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, null, out hManager);
             IntPtr pClientContext = IntPtr.Zero;
@@ -305,6 +305,10 @@ namespace SMBeagle.FileDiscovery
         if (pointer != IntPtr.Zero)
             Marshal.FreeCoTaskMem(pointer);
     }
-
+    public static void RetrieveFile(File file, string outputPath)
+    {
+            System.IO.File.Copy(file.FullName, outputPath, true);
+    }
+	
     }
 }
