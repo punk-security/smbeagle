@@ -13,17 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup .NET
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 7.0.x
+          dotnet-version: 9.0.x
       - name: Restore dependencies
         run: dotnet restore
       - name: Build linux x64
-        run: dotnet publish -c Release --self-contained -r linux-x64 -o packages/linux/amd64 -p:PublishSingleFile=true -p:PublishTrimmed=partial -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false -p:VersionSuffix=pr$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+        run: dotnet publish -c Release --self-contained -r linux-x64 -o packages/linux/amd64 -p:PublishSingleFile=true -p:PublishTrimmed=false -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false -p:VersionSuffix=pr$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
       - name: Build linux arm
-        run: dotnet publish -c Release --self-contained -r linux-arm64 -o packages/linux/arm64 -p:PublishSingleFile=true -p:PublishTrimmed=partial -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false -p:DebugSymbols=false -p:VersionSuffix=pr$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+        run: dotnet publish -c Release --self-contained -r linux-arm64 -o packages/linux/arm64 -p:PublishSingleFile=true -p:PublishTrimmed=false -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false -p:DebugSymbols=false -p:VersionSuffix=pr$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -35,18 +35,20 @@ jobs:
             --progress=plain \
             --platform linux/amd64,linux/arm64
       - name: Upload linux x64
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linux-x64
           path: packages/linux/amd64/*
       - name: Upload linux ARM
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: linux-arm
           path: packages/linux/arm64/* 
       - name: install test dependencies
         run: |
-          sudo pip install impacket pytest
+          python -m venv /tmp/venv
+          source /tmp/venv/bin/activate
+          pip install impacket pytest
       - name: copy beagle into path
         run: |
           sudo cp packages/linux/amd64/SMBeagle /bin/smbeagle
@@ -55,31 +57,31 @@ jobs:
       - name: run pytest
         run: |
           cd tests
-          sudo ROOTDIR=/ pytest -v -k "not on_windows"
+          sudo ROOTDIR=/ /tmp/venv/bin/pytest -v -k "not on_windows"
   build_windows:
     runs-on: windows-2019
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 9.0.x
     - name: Restore dependencies
       run: dotnet restore
     - name: Build windows x64
       shell: bash
-      run: dotnet publish -c Release --self-contained -r win-x64 -o packages/windows/x64 -p:PublishSingleFile=true -p:PublishTrimmed=partial -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false -p:VersionSuffix=pr$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
-    - name: Install signing tool
-      run: dotnet tool install --global AzureSignTool --version 3.0.0
-    - name: Digitally sign executable
-      env:
-        CERT_APP_SECRET: ${{ secrets.AZUREKEYVAULTCLIENTSECRET }}
-        CERT_APP_ID: ${{ secrets.AZUREKEYVAULTAPPLICATIONID }}
-        TENANT_ID: ${{ secrets.AZUREKEYVAULTTENANTID }}
-        VAULT_URI: ${{ secrets.AZUREKEYVAULTURI }}
-      run: azuresigntool sign -kvt "$env:TENANT_ID" -kvu "$env:VAULT_URI" -kvi "$env:CERT_APP_ID" -kvs "$env:CERT_APP_SECRET" -kvc "PunkSecurity-CodeSigningCert-2022" -tr http://timestamp.globalsign.com/tsa/r6advanced1 -v .\packages\windows\x64\SMBeagle.exe
+      run: dotnet publish -c Release --self-contained -r win-x64 -o packages/windows/x64 -p:PublishSingleFile=true -p:PublishTrimmed=false -p:InvariantGlobalization=true -p:DebugType=None -p:DebugSymbols=false -p:VersionSuffix=pr$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+    # - name: Install signing tool
+    #   run: dotnet tool install --global AzureSignTool --version 3.0.0
+    # - name: Digitally sign executable
+    #   env:
+    #     CERT_APP_SECRET: ${{ secrets.AZUREKEYVAULTCLIENTSECRET }}
+    #     CERT_APP_ID: ${{ secrets.AZUREKEYVAULTAPPLICATIONID }}
+    #     TENANT_ID: ${{ secrets.AZUREKEYVAULTTENANTID }}
+    #     VAULT_URI: ${{ secrets.AZUREKEYVAULTURI }}
+    # run: azuresigntool sign -kvt "$env:TENANT_ID" -kvu "$env:VAULT_URI" -kvi "$env:CERT_APP_ID" -kvs "$env:CERT_APP_SECRET" -kvc "PunkSecurity-CodeSigningCert-2022" -tr http://timestamp.globalsign.com/tsa/r6advanced1 -v .\packages\windows\x64\SMBeagle.exe
     - name: Upload windows x64
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: windows-x64
         path: packages\windows/x64\*

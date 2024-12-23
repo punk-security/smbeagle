@@ -1,9 +1,9 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/punk-security/pwnspoof/graphs/commit-activity)
 [![Maintaner](https://img.shields.io/badge/maintainer-PunkSecurity-blue)](https://www.punksecurity.co.uk)
 [![Docker Pulls](https://img.shields.io/docker/pulls/punksecurity/smbeagle)](https://hub.docker.com/r/punksecurity/smbeagle)
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=punk-security_SMBeagle&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=punk-security_SMBeagle)
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=punk-security_SMBeagle&metric=bugs)](https://sonarcloud.io/summary/new_code?id=punk-security_SMBeagle)
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=punk-security_SMBeagle&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=punk-security_SMBeagle)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=punk-security_smbeagle&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=punk-security_smbeagle)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=punk-security_smbeagle&metric=bugs)](https://sonarcloud.io/summary/new_code?id=punk-security_smbeagle)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=punk-security_smbeagle&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=punk-security_smbeagle)
 
 ```
     ____              __   _____                      _ __       
@@ -24,6 +24,12 @@ When running on Windows, with no credentials provided, SMBeagle will make use of
 
 When running on Linux, or when credentials are provided, we use the cross-platform file scanning through [SMBLibrary](https://github.com/TalAloni/SMBLibrary)
 
+## No more digital signing
+
+SMBeagle up to v3 was digitally signed, but v4 adds more offensive features. Namely, it will now look for an retrieve juicy looking files. Great for pentests, but not something we want to digitally sign!
+
+If you want the original version, without the file grabbing features, use v3 which is digitally signed.
+
 It has 2 awesome use cases:
 
 ### Cast a spotlight on weak share permissions.
@@ -41,6 +47,12 @@ SMBeagle can provide penetration testers with the less obvious routes to escalat
 By outputting directly into elasticsearch, testers can quickly find readable scripts and writeable executables.
 
 Finding watering hole attacks and unprotected passwords never felt so easy! 🐱‍👤
+
+**To make it even easier, we've added the ```-g``` flag which will now fetch files back if they look interesting!**
+
+What looks interesting? Well by default we look for scripts and filenames with words like password in them.
+
+... You can provide your own regexes with the ```--file-pattern``` flag.
 
 ## Kibana Dashboard
 Please see [Kibana readme](Kibana/README.md) for detailed instructions on installing and using the Kibana dashboards which
@@ -128,6 +140,10 @@ Do not enumerate ACLs (FASTER):
                                      accepted)
   -s, --share                        Only scan shares with this name (multiple
                                      accepted)
+  --file-pattern                     Only fetch files matching these regexes
+                                     patterns
+  -g, --grab-files                   Grab files and store them locally
+  --loot                             (Default: loot) Path to store grabbed files
   -E, --exclude-hidden-shares        Exclude shares ending in $
   -v, --verbose                      Give more output
   -m, --max-network-cidr-size        (Default: 20) Maximum network size to scan

@@ -1,10 +1,13 @@
-﻿using SMBeagle.Output;
+﻿using SMBeagle.HostDiscovery;
+using SMBeagle.Output;
 using SMBeagle.ShareDiscovery;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace SMBeagle.FileDiscovery
 {
@@ -43,13 +46,25 @@ namespace SMBeagle.FileDiscovery
             }
         }
 
-        public FileFinder(List<Share> shares, bool getPermissionsForSingleFileInDir = true, bool enumerateAcls = true, bool quiet = false, bool verbose = false, bool crossPlatform = false)
+        public FileFinder(List<Share> shares, string outputDirectory, bool fetchFiles, List<String> filePatterns, bool getPermissionsForSingleFileInDir = true, bool enumerateAcls = true, bool quiet = false, bool verbose = false, bool crossPlatform = false)
         {
+            if (fetchFiles)
+            {
+                try
+                {
+                    System.IO.Directory.CreateDirectory(outputDirectory);
+                }
+                catch
+                {
+                    Console.WriteLine($"\nERROR: CANNOT CREATE LOOT DIR {outputDirectory}");
+                    Environment.Exit(0);
+                }
+            }
             pClientContext = IntPtr.Zero;
             if (! crossPlatform)
             {
                 #pragma warning disable CA1416
-                pClientContext = WindowsPermissionHelper.GetpClientContext();
+                pClientContext = WindowsHelper.GetpClientContext();
                 if (enumerateAcls & pClientContext == IntPtr.Zero & !quiet)
                 {
                     OutputHelper.WriteLine("!! Error querying user context.  Failing back to a slower ACL identifier.  ", 1);
@@ -106,6 +121,7 @@ namespace SMBeagle.FileDiscovery
                 OutputHelper.WriteLine($"6c. Enumerating files in directories");
 
             Console.CancelKeyPress += handler;
+            var tasks = new List<Task>();
             foreach (Directory dir in _directories)
             {
                 abort = false;
@@ -123,14 +139,22 @@ namespace SMBeagle.FileDiscovery
                         if (enumerateAcls)
                             FetchFilePermission(file, crossPlatform, getPermissionsForSingleFileInDir);
 
-                        OutputHelper.AddPayload(new Output.FileOutput(file), Enums.OutputtersEnum.File);
-                    }
+						OutputHelper.AddPayload(new Output.FileOutput(file), Enums.OutputtersEnum.File);
+
+						if (fetchFiles && filePatterns.Any(pattern => Regex.IsMatch(file.Name, pattern, RegexOptions.IgnoreCase)))
+                        {
+                            tasks.Add(Task.Run(() => FetchFile(file, crossPlatform, outputDirectory)));
+                            if (crossPlatform)
+							    Task.WaitAll(tasks.ToArray()); // TODO: Generate a Client on demand so we can download in parallel - https://github.com/TalAloni/SMBLibrary/issues/59
+						}
+					}
                 }
 
                 dir.Clear();
                 CacheACL.Clear(); // Clear Cached ACLs otherwise it grows and grows
             }
-            Console.CancelKeyPress -= handler;
+			Task.WaitAll(tasks.ToArray());
+			Console.CancelKeyPress -= handler;
             OutputHelper.WriteLine($"\r  file enumeration complete, {FilesSentForOutput.Count} files identified                ");
         }
 
@@ -186,16 +210,16 @@ namespace SMBeagle.FileDiscovery
                 #pragma warning disable CA1416
                 {
                     if (pClientContext != IntPtr.Zero)
-                        permissions = WindowsPermissionHelper.ResolvePermissions(file.FullName, pClientContext);
+                        permissions = WindowsHelper.ResolvePermissions(file.FullName, pClientContext);
 
                     else
-                        permissions = WindowsPermissionHelper.ResolvePermissionsSlow(file.FullName);
+                        permissions = WindowsHelper.ResolvePermissionsSlow(file.FullName);
                     
                 }
                 #pragma warning restore CA1416
                 else
                 {
-                    permissions = CrossPlatformPermissionHelper.ResolvePermissions(file);
+                    permissions = CrossPlatformHelper.ResolvePermissions(file);
                 }
                 file.SetPermissionsFromACL(permissions);
 
@@ -203,5 +227,27 @@ namespace SMBeagle.FileDiscovery
                 CacheACL[file.ParentDirectory.Path] = permissions;
             }
         }
-    }
+
+		private void FetchFile(File file, bool crossPlatform, string outputDirectory)
+		{
+            byte[] fileBytes;
+            string filename;
+			if (!crossPlatform)
+#pragma warning disable CA1416
+			{
+                // TODO: Add windows method
+				filename = $"{outputDirectory}{Path.DirectorySeparatorChar}{file.FullName}".Replace("\\", "_").Replace("/", "_");
+				filename = $"{outputDirectory}{Path.DirectorySeparatorChar}{filename}";
+				WindowsHelper.RetrieveFile(file, filename);
+			}
+#pragma warning restore CA1416
+			else
+			{
+				filename = $"{file.ParentDirectory.Share.uncPath}{file.FullName}".Replace("\\", "_").Replace("/", "_");
+                filename = $"{outputDirectory}{Path.DirectorySeparatorChar}{filename}";
+                CrossPlatformHelper.RetrieveFile(file, filename);
+			}
+
+		}
+	}
 }

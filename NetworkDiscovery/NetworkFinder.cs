@@ -111,7 +111,7 @@ namespace SMBeagle.NetworkDiscovery
                 address = address.Substring(0,address.IndexOf("%"));
             if (subnetmask != null && subnetmask != "0.0.0.0")
             {
-                cidr = IPNetwork.ToCidr(IPAddress.Parse(subnetmask));
+                cidr = IPNetwork2.ToCidr(IPAddress.Parse(subnetmask));
             }
             // Set cidr
             if (cidr == 0)
