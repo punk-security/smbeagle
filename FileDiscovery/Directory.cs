@@ -184,7 +184,7 @@ namespace SMBeagle.FileDiscovery
                             if (f.FileInformationClass == FileInformationClass.FileDirectoryInformation)
                             {
                                 FileDirectoryInformation d = (FileDirectoryInformation) f;
-                                if (d.FileAttributes == SMBLibrary.FileAttributes.Directory && d.FileName != "." && d.FileName != "..")
+                                if (d.FileAttributes.HasFlag(SMBLibrary.FileAttributes.Directory) && d.FileName != "." && d.FileName != "..")
                                 {
                                     string path = "";
                                     if (Path != "")
