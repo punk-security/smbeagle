@@ -82,7 +82,7 @@ jobs:
           asset_content_type: application/zip
 
   build-windows:
-    runs-on: windows-2019
+    runs-on: windows-2025
     needs: create-release
     steps:
       - uses: actions/checkout@v4
