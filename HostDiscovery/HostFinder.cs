@@ -23,7 +23,7 @@ namespace SMBeagle.HostDiscovery
             InititiateSMBTestsForHosts();
         }
 
-        private void InititiateSMBTestsForHosts(int chunkSize = 5000)
+        private void InititiateSMBTestsForHosts(int chunkSize = 500)
         {
             for (int x = 0; x <= _Hosts.Count / chunkSize; x++)
             {

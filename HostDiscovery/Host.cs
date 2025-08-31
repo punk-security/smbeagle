@@ -8,7 +8,7 @@ namespace SMBeagle.HostDiscovery
 {
     class Host
     {
-        public const int PORT_MAX_WAIT_MS = 500;
+        public const int PORT_MAX_WAIT_MS = 1000;
         public string Address { get; set; }
         public bool SMBAvailable { get { return _SMBAvailable; } }
         private bool _SMBAvailable { get; set; }
