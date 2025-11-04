@@ -231,23 +231,27 @@ namespace SMBeagle.FileDiscovery
 		private void FetchFile(File file, bool crossPlatform, string outputDirectory)
 		{
             byte[] fileBytes;
-            string filename;
-			if (!crossPlatform)
+            string output_filename;
+            output_filename = $"{file.ParentDirectory.Share.uncPath}{file.FullName}".Replace("\\", "_").Replace("/", "_");
+            output_filename = $"{outputDirectory}{Path.DirectorySeparatorChar}{output_filename}";
+            try
+            {
+                if (!crossPlatform)
 #pragma warning disable CA1416
-			{
-                // TODO: Add windows method
-				filename = $"{outputDirectory}{Path.DirectorySeparatorChar}{file.FullName}".Replace("\\", "_").Replace("/", "_");
-				filename = $"{outputDirectory}{Path.DirectorySeparatorChar}{filename}";
-				WindowsHelper.RetrieveFile(file, filename);
-			}
+                {
+                    WindowsHelper.RetrieveFile(file, output_filename);
+                }
 #pragma warning restore CA1416
-			else
-			{
-				filename = $"{file.ParentDirectory.Share.uncPath}{file.FullName}".Replace("\\", "_").Replace("/", "_");
-                filename = $"{outputDirectory}{Path.DirectorySeparatorChar}{filename}";
-                CrossPlatformHelper.RetrieveFile(file, filename);
-			}
+                else
+                {
+                    CrossPlatformHelper.RetrieveFile(file, output_filename);
+                }
+            }
+            catch
+            {
+                OutputHelper.WriteLine($"ERROR: Unable to fetch the file '{file.FullName}'");
+            }
 
-		}
+        }
 	}
 }
