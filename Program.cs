@@ -74,8 +74,15 @@ namespace SMBeagle
             if (opts.CsvFile != null)
                 OutputHelper.EnableCSVLogging(opts.CsvFile, username);
 
-            List<String> filePatterns = new List<string> { ".*(password|config|credentials|creds).*", ".*(ps1|bat|vbs|sh|cmd)$" };
+            if (opts.Aggression < 1 || opts.Aggression > 10)
+            {
+                OutputHelper.WriteLine($"Aggression should be between 1 and 10, not '{opts.Aggression}'");
+                Environment.Exit(1);
+            }
 
+            Host.PORT_MAX_WAIT_MS = 1010 - (100 * opts.Aggression);
+
+            List<String> filePatterns = new List<string> { ".*(password|config|credentials|creds).*", ".*(ps1|bat|vbs|sh|cmd)$" };
 
             if (opts.GrabFiles)
             {
@@ -393,12 +400,14 @@ namespace SMBeagle
 
         public class Options
         {
-
             [Option('c', "csv-file", Group = "output", Required = false, HelpText = "Output results to a CSV file by providing filepath")]
             public string CsvFile { get; set; }
 
             [Option('e', "elasticsearch-host", Group = "output", Required = false, HelpText = "Output results to elasticsearch by providing elasticsearch hostname (default port is 9200 , but can be overridden)")]
             public string ElasticsearchHost { get; set; }
+
+            [Option('a', "aggression", Required = false, Default = 6, HelpText = "Vary scanning speed in a range between 1 and 10. 10 being fastest [No decimals]")]
+            public int Aggression { get; set; }
 
             [Option("elasticsearch-port", Required = false, Default = "9200", HelpText = "Define the elasticsearch custom port if required")]
             public string ElasticsearchPort { get; set; }
