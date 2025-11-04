@@ -123,6 +123,9 @@ Do not enumerate ACLs (FASTER):
                                      elasticsearch by providing elasticsearch
                                      hostname (default port is 9200 , but can be
                                      overridden)
+  -a, --aggression                   (Default: 6) Vary scanning speed in a range
+                                     between 1 and 10. 10 being fastest [No
+                                     decimals]
   --elasticsearch-port               (Default: 9200) Define the elasticsearch
                                      custom port if required
   -f, --fast                         Enumerate only one files permissions per
