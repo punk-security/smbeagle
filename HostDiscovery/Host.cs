@@ -1,5 +1,6 @@
 ﻿using SMBeagle.ShareDiscovery;
 using SMBLibrary.Client;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -8,7 +9,7 @@ namespace SMBeagle.HostDiscovery
 {
     class Host
     {
-        public const int PORT_MAX_WAIT_MS = 1000;
+        public static int PORT_MAX_WAIT_MS = 1000;
         public string Address { get; set; }
         public bool SMBAvailable { get { return _SMBAvailable; } }
         private bool _SMBAvailable { get; set; }
