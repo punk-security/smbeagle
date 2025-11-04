@@ -1,16 +1,17 @@
-﻿using SMBeagle.FileDiscovery;
+﻿using CommandLine;
+using CommandLine.Text;
+using SMBeagle.FileDiscovery;
 using SMBeagle.HostDiscovery;
 using SMBeagle.NetworkDiscovery;
 using SMBeagle.Output;
 using SMBeagle.ShareDiscovery;
-using CommandLine;
-using CommandLine.Text;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
-using System.Diagnostics.CodeAnalysis;
 
 namespace SMBeagle
 {
@@ -72,6 +73,34 @@ namespace SMBeagle
 
             if (opts.CsvFile != null)
                 OutputHelper.EnableCSVLogging(opts.CsvFile, username);
+
+            List<String> filePatterns = new List<string> { ".*(password|config|credentials|creds).*", ".*(ps1|bat|vbs|sh|cmd)$" };
+
+
+            if (opts.GrabFiles)
+            {
+                OutputHelper.WriteLine($"We will grab files and store them in {opts.OutputDirectory} directory");
+                if (opts.FilePatterns.Any())
+                {
+                    filePatterns = opts.FilePatterns.ToList();
+                    foreach (var pattern in filePatterns)
+                    {
+                        try
+                        {
+                            _ = Regex.IsMatch("", pattern);
+                        }
+                        catch
+                        {
+                            OutputHelper.WriteLine($"ERROR: Provided regex pattern '{pattern}' is invalid",1);
+                            Environment.Exit(0);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                OutputHelper.WriteLine($"Will NOT Grab files - rerun and use the '-g' flag to grab them if needed");
+            }
 
             NetworkFinder
                 nf = new();
@@ -307,23 +336,6 @@ namespace SMBeagle
             }
 
             OutputHelper.WriteLine("6. Enumerating accessible shares, this can be slow...");
-
-            List<String> filePatterns = new List<string> { ".*(password|config|credentials|creds).*", ".*(ps1|bat|vbs|sh|cmd)$" };
-
-
-			if (opts.GrabFiles)
-            {
-                OutputHelper.WriteLine($"Grabbing files and storing them in {opts.OutputDirectory}", 1);
-                if (opts.FilePatterns.Any())
-                {
-                    filePatterns = opts.FilePatterns.ToList();
-					OutputHelper.WriteLine($"Using the provided regexes", 1);
-				}
-            }
-            else
-            {
-				OutputHelper.WriteLine($"NOT Grabbing files - use the '-g' flag to grab them if needed", 1);
-			}
 
 			// Find files on all the shares
 			FileFinder
